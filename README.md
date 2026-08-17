@@ -33,3 +33,8 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Product status
 
 This is a product-validation demo, not a production marketplace. Payments, payouts, identity checks, and parental approval are simulated or planned for later phases.
+
+## Product documentation
+
+- [Product requirements](./docs/PRODUCT_REQUIREMENTS.md)
+- [Technical architecture and implementation plan](./docs/IMPLEMENTATION_PLAN.md)
