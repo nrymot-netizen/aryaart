@@ -1,0 +1,3 @@
+import { PageIntro } from "@/components/page-intro";
+import { ClockCountdown } from "@phosphor-icons/react/dist/ssr";
+export default function OrdersPage() { return <><PageIntro eyebrow="Your commissions" title="Orders, all in one place" description="Requests, active projects, files, approvals, and completed artwork will live here." /><div className="mx-auto max-w-3xl px-4 pb-20"><div className="rounded-4xl border border-dashed border-black/15 bg-white py-16 text-center"><ClockCountdown size={34} className="mx-auto text-plum" /><h2 className="mt-4 text-lg font-bold">No active orders yet</h2><p className="mt-1 text-sm text-black/50">When you request a commission, its progress will appear here.</p></div></div></> }
