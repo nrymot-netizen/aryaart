@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Compass, PaintBrush, Receipt, Sparkle, Storefront, UserCircle } from "@phosphor-icons/react";
+import { Bell, Compass, PaintBrush, Receipt, Sparkle, Storefront } from "@phosphor-icons/react";
 import { Logo } from "./logo";
+import { PersonaSwitcher } from "@/features/demo/persona-switcher";
 
 const nav = [
   { label: "Discover", href: "/", icon: Compass },
@@ -28,7 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="flex items-center gap-2">
             <button className="relative grid size-10 place-items-center rounded-full hover:bg-black/5" aria-label="Notifications"><Bell size={21} /><span className="absolute right-2 top-2 size-2 rounded-full bg-coral ring-2 ring-paper" /></button>
-            <Link href="/studio" className="grid size-10 place-items-center rounded-full bg-mist text-plum" aria-label="Your profile"><UserCircle size={24} weight="fill" /></Link>
+            <PersonaSwitcher />
           </div>
         </div>
       </header>
