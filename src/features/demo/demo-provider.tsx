@@ -1,23 +1,88 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { DemoPersona } from "@/types";
 import { defaultDemoPersona, demoPersonas } from "./demo-personas";
+import { createDemoState, demoStateKey, legacyPersonaKey, parseDemoState, type DemoPersistedState } from "./demo-state";
+import { makeId, reduceDemoState, type DemoCommand } from "./demo-reducer";
+import { Toast } from "@/components/ui/toast";
 
-const storageKey = "arya-demo-persona-v1";
-interface DemoContextValue { persona: DemoPersona; setPersonaId: (id: string) => void; resetDemo: () => void; }
+interface DemoContextValue {
+  state: DemoPersistedState;
+  persona: DemoPersona;
+  hydrated: boolean;
+  setPersonaId: (id: string) => void;
+  resetDemo: () => void;
+  dispatch: (command: DemoCommand) => ReturnType<typeof reduceDemoState>;
+  unreadCount: number;
+}
+
 const DemoContext = createContext<DemoContextValue | null>(null);
 
 export function DemoProvider({ children }: { children: React.ReactNode }) {
-  const [personaId, setPersonaIdState] = useState(defaultDemoPersona.id);
-  useEffect(() => { const stored = window.localStorage.getItem(storageKey); if (stored && demoPersonas.some((persona) => persona.id === stored)) setPersonaIdState(stored); }, []);
-  const persona = demoPersonas.find((item) => item.id === personaId) ?? defaultDemoPersona;
+  const router = useRouter();
+  const [state, setState] = useState<DemoPersistedState>(createDemoState);
+  const [toast, setToast] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const toastTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    setState(parseDemoState(window.localStorage.getItem(demoStateKey), window.localStorage.getItem(legacyPersonaKey)));
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    window.localStorage.setItem(demoStateKey, JSON.stringify(state));
+    window.localStorage.setItem(legacyPersonaKey, state.personaId);
+  }, [hydrated, state]);
+
+  const showToast = (message?: string) => {
+    if (!message) return;
+    setToast(message);
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2600);
+  };
+
+  const persona = demoPersonas.find((item) => item.id === state.personaId) ?? defaultDemoPersona;
+
+  const dispatch = (command: DemoCommand) => {
+    const ctx = {
+      now: new Date().toISOString(),
+      id: makeId,
+      actorId: persona.id,
+      role: persona.role,
+      accountType: persona.accountType,
+      artistId: persona.artistId,
+    };
+    let result: ReturnType<typeof reduceDemoState> = { state };
+    setState((current) => {
+      result = reduceDemoState(current, command, ctx);
+      return result.state;
+    });
+    showToast(result.toast);
+    if (result.href) router.push(result.href);
+    return result;
+  };
+
+  const unreadCount = state.notifications.filter((item) => !item.read && (item.profileId === persona.id || item.profileId === persona.artistId)).length;
+
   const value = useMemo<DemoContextValue>(() => ({
+    state,
     persona,
-    setPersonaId: (id) => { if (!demoPersonas.some((item) => item.id === id)) return; setPersonaIdState(id); window.localStorage.setItem(storageKey, id); },
-    resetDemo: () => { window.localStorage.removeItem(storageKey); setPersonaIdState(defaultDemoPersona.id); window.dispatchEvent(new CustomEvent("arya:reset-demo")); },
-  }), [persona]);
-  return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
+    hydrated,
+    setPersonaId: (id) => dispatch({ type: "set-persona", personaId: id }),
+    resetDemo: () => dispatch({ type: "reset" }),
+    dispatch,
+    unreadCount,
+  }), [state, persona, hydrated, unreadCount]);
+
+  return <DemoContext.Provider value={value}>{children}<Toast message={toast} /></DemoContext.Provider>;
 }
 
-export function useDemo() { const value = useContext(DemoContext); if (!value) throw new Error("useDemo must be used inside DemoProvider"); return value; }
+export function useDemo() {
+  const value = useContext(DemoContext);
+  if (!value) throw new Error("useDemo must be used inside DemoProvider");
+  return value;
+}

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Compass, PaintBrush, Receipt, Sparkle, Storefront } from "@phosphor-icons/react";
+import { Bell, BookmarkSimple, Compass, PaintBrush, Receipt, Sparkle, Storefront } from "@phosphor-icons/react";
 import { Logo } from "./logo";
 import { PersonaSwitcher } from "@/features/demo/persona-switcher";
+import { useDemo } from "@/features/demo/demo-provider";
 
 const nav = [
   { label: "Discover", href: "/", icon: Compass },
@@ -16,6 +17,7 @@ const nav = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { unreadCount } = useDemo();
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-black/5 bg-paper/90 backdrop-blur-xl">
@@ -28,7 +30,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
           <div className="flex items-center gap-2">
-            <button className="relative grid size-10 place-items-center rounded-full hover:bg-black/5" aria-label="Notifications"><Bell size={21} /><span className="absolute right-2 top-2 size-2 rounded-full bg-coral ring-2 ring-paper" /></button>
+            <Link href="/saved" className={`relative grid size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/saved") ? "bg-black/5 text-plum" : ""}`} aria-label="Saved artwork and artists"><BookmarkSimple size={21} weight={pathname.startsWith("/saved") ? "fill" : "regular"} /></Link>
+            <Link href="/notifications" className={`relative grid size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/notifications") ? "bg-black/5 text-plum" : ""}`} aria-label="Notifications"><Bell size={21} />{unreadCount > 0 && <span className="absolute right-2 top-2 size-2 rounded-full bg-coral ring-2 ring-paper" />}</Link>
             <PersonaSwitcher />
           </div>
         </div>
