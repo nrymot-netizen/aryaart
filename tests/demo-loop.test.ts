@@ -74,6 +74,8 @@ describe("demo commission loop", () => {
   it("publishes a canvas drawing into the demo portfolio", () => {
     const result = reduceDemoState(createDemoState(), {
       type: "create-artwork",
+      processOps: [{ type: "fill", x: 12, y: 20, color: "#17151b", layerId: "layer-1" }],
+      paperColor: "#fffdf8",
       artwork: {
         id: "art-canvas-demo",
         artistId: "luna",
@@ -94,8 +96,46 @@ describe("demo commission loop", () => {
       },
     }, luna);
     expect(result.state.createdArtworks[0]?.id).toBe("art-canvas-demo");
+    expect(result.state.createdArtworks[0]?.tools).toContain("Arya Canvas");
+    expect(result.state.processLogs[0]?.subjectId).toBe("art-canvas-demo");
     expect(result.href).toBe("/art/art-canvas-demo");
     expect(result.state.events.some((event) => event.name === "artwork_published" && event.payload?.source === "canvas")).toBe(true);
+    expect(result.state.events.some((event) => event.name === "process_log_recorded")).toBe(true);
+  });
+
+  it("does not let an upload fake Arya Canvas proof without strokes", () => {
+    const result = reduceDemoState(createDemoState(), {
+      type: "create-artwork",
+      artwork: {
+        id: "art-upload-demo",
+        artistId: "luna",
+        title: "File drop",
+        description: "Published from a file.",
+        image: "data:image/jpeg;base64,aaaa",
+        style: "Anime",
+        subject: "character",
+        tags: ["upload"],
+        tools: ["Arya Canvas"],
+        aiDisclosure: false,
+        visibility: "public",
+        publishedAt: "2026-08-17",
+        price: 40,
+        likes: 0,
+        format: "digital",
+      },
+    }, luna);
+    expect(result.state.createdArtworks[0]?.tools).not.toContain("Arya Canvas");
+    expect(result.state.processLogs.some((item) => item.subjectId === "art-upload-demo")).toBe(false);
+    expect(result.state.events.some((event) => event.name === "artwork_published" && event.payload?.source === "upload")).toBe(true);
+  });
+
+  it("snapshots license copy when Luna accepts a request", () => {
+    const submitted = request();
+    const accepted = reduceDemoState(submitted.state, { type: "respond", orderId: submitted.state.orders[0].id, action: "accept-request" }, luna);
+    const headline = accepted.state.orders[0].termsSnapshot?.licenseSummary ?? "";
+    expect(headline).toMatch(/files for personal use/i);
+    expect(headline).toMatch(/copyright/i);
+    expect(headline.toLowerCase()).not.toMatch(/own the art/);
   });
 
   it("blocks a buyer from accepting their own request", () => {
@@ -107,8 +147,45 @@ describe("demo commission loop", () => {
 
   it("blocks protected-teen contact sharing in the workspace", () => {
     const sketch = createDemoState();
-    const result = reduceDemoState(sketch, { type: "send-message", orderId: "order-first-flight", body: "email me at alex@example.com", protectedAccount: true }, { ...buyer, actorId: "leo", role: "artist", artistId: "leo", accountType: "protected-teen" });
+    const result = reduceDemoState(sketch, { type: "send-message", orderId: "order-first-flight", body: "email me at alex@example.com" }, { ...buyer, actorId: "leo", role: "artist", artistId: "leo", accountType: "protected-teen" });
     expect(result.error).toContain("Message not sent");
+  });
+
+  it("blocks an adult buyer from sending contact on a protected-teen artist order", () => {
+    const result = reduceDemoState(createDemoState(), { type: "send-message", orderId: "order-first-flight", body: "text me 312-555-0184" }, buyer);
+    expect(result.error).toContain("Message not sent");
+  });
+
+  it("rejects a request brief that shares contact on a protected thread", () => {
+    const result = reduceDemoState(createDemoState(), {
+      type: "submit-request",
+      order: {
+        buyerId: "buyer-alex",
+        artistId: "maya",
+        serviceId: "pet-sticker",
+        brief: "Please email the sketch to alex@example.com",
+        characterCount: 1,
+        intendedUse: "personal",
+        addOnIds: [],
+        deadline: "2026-09-30",
+        budget: 30,
+        references: [],
+        estimatedPrice: 20,
+        price: 20,
+        revisionLimit: 1,
+        revisionsUsed: 0,
+        parentApprovalRequired: false,
+        parentApproved: true,
+      },
+    }, buyer);
+    expect(result.error).toContain("Request not sent");
+  });
+
+  it("records a demo report and hides the other party after a block", () => {
+    const reported = reduceDemoState(createDemoState(), { type: "report-order", orderId: "order-first-flight" }, buyer);
+    expect(reported.state.orderReports[0]?.orderId).toBe("order-first-flight");
+    const blocked = reduceDemoState(reported.state, { type: "block-order", orderId: "order-first-flight" }, buyer);
+    expect(blocked.state.orderBlocks[0]?.blockedId).toBe("leo");
   });
 
   it("promotes the first waitlist entry when a slot opens", () => {

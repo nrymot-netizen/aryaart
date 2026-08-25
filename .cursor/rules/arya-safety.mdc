@@ -1,0 +1,15 @@
+---
+description: Teen safety and demo vs production guardrails
+alwaysApply: true
+---
+
+# Safety
+
+Read `docs/SAFETY.md`. Demo is not a T&S program. Do not claim COPPA or “safe for all kids.”
+
+- 13+ only. No exact ages in UI. Teens cannot disable default protections.
+- No open DMs. Contact sharing stays blocked on protected threads. Do not weaken the matcher to boost conversion.
+- Derive protected-thread from profiles, not a client boolean, when touching the reducer.
+- No generative AI. No sexualized minors. Desire is artwork, not bodies.
+- Report/block/leave exist as demo stubs on the order. Do not remove the “demo mode / no moderator” copy.
+- Do not add wallets, minting, or off-platform contact fields.

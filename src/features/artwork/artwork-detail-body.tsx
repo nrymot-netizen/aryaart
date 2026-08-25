@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { artists, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
-import { SaveArtworkButton } from "@/features/saves/save-button";
+import { ArtworkStage } from "@/features/artwork/artwork-identity";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { ArtworkCard } from "@/components/artwork-card";
 import { ArtworkMedia } from "@/components/artwork-media";
@@ -18,10 +18,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <Link href="/" className="text-sm font-bold text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">← Discover</Link>
       <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-        <div className="relative overflow-hidden rounded-[2rem] bg-mist">
-          <ArtworkMedia src={artwork.image} alt={artwork.title} width={900} height={1100} priority className="h-auto w-full" />
-          <SaveArtworkButton artworkId={artwork.id} title={artwork.title} className="absolute right-4 top-4" />
-        </div>
+        <ArtworkStage artwork={artwork} artistName={artist.displayName} />
         <div>
           {artwork.isNew && <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">New</p>}
           <h1 className="mt-2 font-[family-name:var(--font-display)] text-5xl leading-none sm:text-6xl">{artwork.title}</h1>

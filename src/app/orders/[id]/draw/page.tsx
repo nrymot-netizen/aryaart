@@ -8,6 +8,7 @@ import { DrawingStudio } from "@/features/canvas/drawing-studio";
 import { useDemo } from "@/features/demo/demo-provider";
 import { drawingToDemoFile } from "@/lib/domain/canvas";
 import { Button } from "@/components/ui/button";
+import { LicenseNotice } from "@/features/license/license-notice";
 
 export default function OrderDrawPage() {
   return <Suspense fallback={<div className="px-4 py-16 text-sm text-black/50">Loading the canvas…</div>}><OrderDrawForm /></Suspense>;
@@ -72,13 +73,21 @@ function OrderDrawForm() {
           <section className="space-y-2">
             <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">Brief</h2>
             <p className="text-sm leading-6 text-black/70">{order.brief}</p>
-            <p className="text-xs text-black/45">Due {order.deadline} · {order.intendedUse} · ${order.price}</p>
+            <p className="text-xs text-black/45">Due {order.deadline} · ${order.price}</p>
+            <LicenseNotice intendedUse={order.intendedUse} artistName={artist?.displayName ?? "The artist"} storedHeadline={order.termsSnapshot?.licenseSummary} compact />
             {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
           </section>
         )}
         onExport={(drawing) => {
           const file = drawingToDemoFile(drawing, kind, `${kind}.jpg`, new Date().toISOString());
-          const result = dispatch({ type: "artist-deliver", orderId: order.id, action: kind === "final" ? "submit-final" : "submit-sketch", file });
+          const result = dispatch({
+            type: "artist-deliver",
+            orderId: order.id,
+            action: kind === "final" ? "submit-final" : "submit-sketch",
+            file,
+            processOps: drawing.ops ?? [],
+            paperColor: drawing.paperColor,
+          });
           if (result.error) setError(result.error);
         }}
       />

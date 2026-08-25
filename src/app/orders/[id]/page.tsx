@@ -6,12 +6,16 @@ import { useParams } from "next/navigation";
 import { getArtist, getService } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
 import { latestFileOfKind } from "@/lib/domain/canvas";
-import { getWorkspaceNextAction, orderStatusLabel, remainingRevisions } from "@/lib/domain/orders";
+import { getWorkspaceNextAction, getNextOrderStatus, orderStatusLabel, remainingRevisions } from "@/lib/domain/orders";
+import { orderIsProtectedThread } from "@/lib/domain/safety";
+import { humanMadeFromStrokes, processLogFor } from "@/lib/domain/process-log";
+import type { DemoFile } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/form-field";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
 import { Dialog, DialogActions } from "@/components/ui/dialog";
-import type { DemoFile } from "@/types";
+import { LicenseNotice } from "@/features/license/license-notice";
+import { ReplayPlayer } from "@/features/artwork/replay-player";
 
 const tabs = ["Messages", "Files", "Timeline", "Details"] as const;
 
@@ -24,7 +28,7 @@ export default function OrderWorkspacePage() {
   const [blocked, setBlocked] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [review, setReview] = useState({ rating: 5, body: "" });
-  const [dialog, setDialog] = useState<"accept" | "counter" | "decline" | null>(null);
+  const [dialog, setDialog] = useState<"accept" | "counter" | "decline" | "report" | "block" | "cancel" | null>(null);
   const [counter, setCounter] = useState({ price: order?.estimatedPrice ?? 0, deadline: order?.deadline ?? "", revisions: order?.revisionLimit ?? 2, notes: "", reason: "Scope is larger than the original brief." });
   const [decline, setDecline] = useState({ reason: "Schedule is full", note: "" });
 
@@ -42,14 +46,20 @@ export default function OrderWorkspacePage() {
   const latestFinal = latestFileOfKind(files, "final");
   const milestones = state.milestones.filter((item) => item.orderId === order.id);
   const events = state.timeline.filter((item) => item.orderId === order.id);
-  const protectedAccount = artist?.accountType === "protected-teen" || persona.accountType === "protected-teen";
+  const protectedThread = orderIsProtectedThread(order);
+  const viewerBlocked = state.orderBlocks.some((item) => item.orderId === order.id && item.blockerId === persona.id);
+  const otherPartyId = isArtist ? order.buyerId : order.artistId;
+  const visibleMessages = viewerBlocked
+    ? messages.filter((item) => item.kind === "system" || item.senderId !== otherPartyId)
+    : messages;
+  const canCancel = Boolean((isBuyer || isArtist) && getNextOrderStatus(order.status, "cancel", persona.role));
 
   if (!participant) {
     return <div className="mx-auto max-w-3xl px-4 py-24 text-center"><h1 className="text-2xl font-bold">This workspace is private</h1><p className="mt-2 text-black/50">Only the buyer and artist on this order can enter.</p></div>;
   }
 
   const send = () => {
-    const result = dispatch({ type: "send-message", orderId: order.id, body: message, protectedAccount });
+    const result = dispatch({ type: "send-message", orderId: order.id, body: message });
     if (result.error) setBlocked(result.error);
     else { setMessage(""); setBlocked(null); }
   };
@@ -72,9 +82,19 @@ export default function OrderWorkspacePage() {
         </div>
         {order.status === "payment-required" && isBuyer && <Link href={`/checkout/${order.id}`} className="rounded-full bg-plum px-5 py-3 text-sm font-bold text-white">Go to checkout</Link>}
       </div>
+      <div className="mt-5 max-w-2xl">
+        <LicenseNotice intendedUse={order.intendedUse} artistName={artist?.displayName ?? "The artist"} storedHeadline={order.termsSnapshot?.licenseSummary} compact />
+      </div>
 
       {next && <div className="mt-6 rounded-3xl bg-ink px-5 py-4 text-white"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#c7b4ff]">Next required action</p><p className="mt-1 text-lg font-bold">{next.title}</p><p className="text-sm text-white/70">{next.detail}</p></div>}
-      {protectedAccount && <div className="mt-4"><ProtectedAccountNotice compact /></div>}
+      {protectedThread && <div className="mt-4"><ProtectedAccountNotice compact /></div>}
+      {(isBuyer || isArtist) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="ghost" onClick={() => setDialog("report")}>Report</Button>
+          <Button variant="ghost" onClick={() => setDialog("block")}>{viewerBlocked ? "Unblock" : "Block"}</Button>
+          {canCancel && <Button variant="danger" onClick={() => setDialog("cancel")}>Leave / cancel</Button>}
+        </div>
+      )}
 
       {isArtist && order.status === "awaiting-artist" && (
         <div className="mt-5 flex flex-wrap gap-2">
@@ -131,15 +151,16 @@ export default function OrderWorkspacePage() {
         <div>
           {tab === "Messages" && (
             <div>
+              {viewerBlocked && <p className="mb-3 text-sm text-black/50">You blocked this conversation in demo mode. Their messages are hidden for you.</p>}
               <div className="space-y-3">
-                {messages.map((item) => (
+                {visibleMessages.map((item) => (
                   <div key={item.id} className={`rounded-3xl p-4 text-sm ${item.kind === "system" ? "bg-mist text-black/60" : item.moderationState === "blocked" ? "bg-red-50 text-red-700" : "bg-white"}`}>
                     <p className="text-xs font-bold uppercase tracking-[0.12em]">{item.kind === "system" ? "System" : item.senderId === "leo" || item.senderId === "luna" || item.senderId === "maya" || item.senderId === "nova" || item.senderId === "rose" ? "Artist" : "Buyer"}</p>
                     <p className="mt-1 leading-6">{item.moderationState === "blocked" ? "Message not sent. Sharing personal contact information is restricted for protected teen accounts." : item.body}</p>
                   </div>
                 ))}
               </div>
-              {(isBuyer || isArtist) && order.status !== "declined" && order.status !== "cancelled" && (
+              {(isBuyer || isArtist) && order.status !== "declined" && order.status !== "cancelled" && !viewerBlocked && (
                 <div className="mt-4">
                   <Textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Project-only message" />
                   {blocked && <p className="mt-2 text-sm font-semibold text-red-700" role="alert">{blocked}</p>}
@@ -149,7 +170,27 @@ export default function OrderWorkspacePage() {
             </div>
           )}
           {tab === "Files" && (
-            <ul className="grid gap-3 sm:grid-cols-2">{files.length ? files.map((file) => <li key={file.id} className="rounded-3xl bg-white p-4 text-sm"><p className="font-bold">{file.kind}{file.source === "arya-canvas" ? " · drawn on Arya" : ""}</p><p>{file.name}</p>{file.preview && <img src={file.preview} alt="" className="mt-3 w-full rounded-2xl" />}</li>) : <p className="text-sm text-black/50">No files yet. The artist can draw a sketch here.</p>}</ul>
+            <ul className="grid gap-3 sm:grid-cols-2">{files.length ? files.map((file) => {
+              const log = processLogFor(state.processLogs, file.id);
+              const made = humanMadeFromStrokes({ source: file.source, processLog: log });
+              return (
+                <li key={file.id} className="rounded-3xl bg-white p-4 text-sm">
+                  <p className="font-bold">{file.kind}{file.source === "arya-canvas" ? " · drawn on Arya" : ""}{made ? " · human-made" : ""}</p>
+                  <p>{file.name}</p>
+                  {log && log.ops.length > 0 && file.preview ? (
+                    <div className="mt-3">
+                      <ReplayPlayer
+                        stillSrc={file.preview}
+                        alt=""
+                        processLog={log}
+                        reducedMotion
+                        onPlayed={() => dispatch({ type: "track-event", name: "replay_played", payload: { fileId: file.id } })}
+                      />
+                    </div>
+                  ) : file.preview ? <img src={file.preview} alt="" className="mt-3 w-full rounded-2xl" /> : null}
+                </li>
+              );
+            }) : <p className="text-sm text-black/50">No files yet. The artist can draw a sketch here.</p>}</ul>
           )}
           {tab === "Timeline" && (
             <ol className="space-y-3">{events.map((item) => <li key={item.id} className="rounded-3xl bg-white p-4 text-sm"><p className="font-bold">{item.eventType}</p><p className="text-black/60">{item.detail}</p></li>)}</ol>
@@ -157,8 +198,13 @@ export default function OrderWorkspacePage() {
           {tab === "Details" && (
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-3xl bg-white p-4"><dt className="text-black/45">Brief</dt><dd className="mt-1">{order.brief}</dd></div>
-              <div className="rounded-3xl bg-white p-4"><dt className="text-black/45">Use</dt><dd className="mt-1">{order.intendedUse}</dd></div>
               <div className="rounded-3xl bg-white p-4"><dt className="text-black/45">Deadline</dt><dd className="mt-1">{order.deadline}</dd></div>
+              <div className="rounded-3xl bg-white p-4 sm:col-span-2">
+                <dt className="text-black/45">License</dt>
+                <dd className="mt-2">
+                  <LicenseNotice intendedUse={order.intendedUse} artistName={artist?.displayName ?? "The artist"} storedHeadline={order.termsSnapshot?.licenseSummary} compact />
+                </dd>
+              </div>
               <div className="rounded-3xl bg-white p-4"><dt className="text-black/45">Accepted terms</dt><dd className="mt-1">{order.termsSnapshot ? `$${order.termsSnapshot.price} · ${order.termsSnapshot.revisions} revisions` : "Not locked yet"}</dd></div>
             </dl>
           )}
@@ -186,6 +232,27 @@ export default function OrderWorkspacePage() {
         <label className="block text-sm font-bold">Private reason<input className="mt-1 w-full rounded-2xl border border-black/10 px-3 py-2" value={decline.reason} onChange={(event) => setDecline({ ...decline, reason: event.target.value })} /></label>
         <label className="mt-3 block text-sm font-bold">Note to buyer<textarea className="mt-1 w-full rounded-2xl border border-black/10 px-3 py-2" value={decline.note} onChange={(event) => setDecline({ ...decline, note: event.target.value })} /></label>
         <DialogActions><Button variant="ghost" onClick={() => setDialog(null)}>Cancel</Button><Button variant="danger" onClick={() => { dispatch({ type: "respond", orderId: order.id, action: "decline-request", decline }); setDialog(null); }}>Decline</Button></DialogActions>
+      </Dialog>
+      <Dialog open={dialog === "report"} title="Report this order" onClose={() => setDialog(null)}>
+        <p className="text-sm text-black/60">This records a demo report. There is no moderator on call. Use it to practice the control.</p>
+        <DialogActions>
+          <Button variant="ghost" onClick={() => setDialog(null)}>Close</Button>
+          <Button onClick={() => { dispatch({ type: "report-order", orderId: order.id }); setDialog(null); }}>Send demo report</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={dialog === "block"} title={viewerBlocked ? "Unblock this conversation?" : "Block this conversation?"} onClose={() => setDialog(null)}>
+        <p className="text-sm text-black/60">{viewerBlocked ? "You will see their messages again in this browser demo." : "Their messages will be hidden for you. This is a demo block, not a network-wide ban."}</p>
+        <DialogActions>
+          <Button variant="ghost" onClick={() => setDialog(null)}>Close</Button>
+          <Button variant="danger" onClick={() => { dispatch({ type: "block-order", orderId: order.id }); setDialog(null); }}>{viewerBlocked ? "Unblock" : "Block"}</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={dialog === "cancel"} title="Leave this order?" onClose={() => setDialog(null)}>
+        <p className="text-sm text-black/60">This cancels the commission for both people. You can leave while the order is still open.</p>
+        <DialogActions>
+          <Button variant="ghost" onClick={() => setDialog(null)}>Stay</Button>
+          <Button variant="danger" onClick={() => { dispatch({ type: "cancel-order", orderId: order.id }); setDialog(null); }}>Leave / cancel</Button>
+        </DialogActions>
       </Dialog>
     </div>
   );

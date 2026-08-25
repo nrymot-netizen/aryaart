@@ -13,6 +13,7 @@ describe("demo persistence helpers", () => {
     const parsed = parseDemoState(JSON.stringify(state));
     expect(parsed.savedArtworkIds).toEqual(["moon-garden"]);
     expect(parsed.waitlists.length).toBeGreaterThan(0);
+    expect(Array.isArray(parsed.processLogs)).toBe(true);
   });
 
   it("falls back when the snapshot is corrupt", () => {

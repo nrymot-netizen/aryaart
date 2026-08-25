@@ -29,7 +29,7 @@ export const seedOrders: CommissionOrder[] = [
     price: 120,
     revisionLimit: 2,
     revisionsUsed: 0,
-    termsSnapshot: { serviceTitle: "Luminous Portrait", price: 120, deadline: "2026-04-20", revisions: 2, intendedUse: "personal", addOnIds: [] },
+    termsSnapshot: { serviceTitle: "Luminous Portrait", price: 120, deadline: "2026-04-20", revisions: 2, intendedUse: "personal", addOnIds: [], licenseSummary: "You get the files for personal use, including printing at home. Rose keeps the copyright." },
     parentApprovalRequired: false,
     parentApproved: true,
     review: { rating: 5, body: "It felt like a real sitting. Light, fabric, and expression all landed.", createdAt: "2026-04-12" },
@@ -54,17 +54,42 @@ export const seedOrders: CommissionOrder[] = [
     price: 52,
     revisionLimit: 1,
     revisionsUsed: 0,
-    termsSnapshot: { serviceTitle: "Comic Cover Portrait", price: 52, deadline: "2026-08-28", revisions: 1, intendedUse: "personal", addOnIds: ["leo-title"] },
+    termsSnapshot: { serviceTitle: "Comic Cover Portrait", price: 52, deadline: "2026-08-28", revisions: 1, intendedUse: "personal", addOnIds: ["leo-title"], licenseSummary: "You get the files for personal use, including printing at home. Leo keeps the copyright." },
     parentApprovalRequired: false,
     parentApproved: true,
     createdAt: "2026-08-08T12:00:00Z",
     updatedAt: "2026-08-16T15:00:00Z",
+  },
+  {
+    id: "order-luna-first-paid",
+    buyerId: "buyer-alex",
+    artistId: "luna",
+    serviceId: "anime-portrait",
+    status: "completed",
+    brief: "A moonlit garden portrait of my original character, quiet and a little magical.",
+    characterCount: 1,
+    intendedUse: "personal",
+    addOnIds: [],
+    deadline: "2026-06-20",
+    budget: 60,
+    references: [],
+    estimatedPrice: 45,
+    price: 45,
+    revisionLimit: 2,
+    revisionsUsed: 0,
+    termsSnapshot: { serviceTitle: "Anime Character Portrait", price: 45, deadline: "2026-06-20", revisions: 2, intendedUse: "personal", addOnIds: [], licenseSummary: "You get the files for personal use, including printing at home. Luna Chen keeps the copyright." },
+    parentApprovalRequired: false,
+    parentApproved: true,
+    review: { rating: 5, body: "It felt like my character, not a generic anime face.", createdAt: "2026-06-18" },
+    createdAt: "2026-06-01T12:00:00Z",
+    updatedAt: "2026-06-18T12:00:00Z",
   },
 ];
 
 export const seedMilestones: Milestone[] = [
   ...milestones("order-quiet-light", 9, 9),
   ...milestones("order-first-flight", 4, 4),
+  ...milestones("order-luna-first-paid", 9, 9),
 ];
 
 export const seedMessages: OrderMessage[] = [
@@ -75,10 +100,12 @@ export const seedMessages: OrderMessage[] = [
 export const seedTimeline: TimelineEvent[] = [
   { id: "t1", orderId: "order-first-flight", actorId: "leo", eventType: "submit-sketch", detail: "Sketch submitted", createdAt: "2026-08-16T15:00:00Z" },
   { id: "t2", orderId: "order-quiet-light", actorId: "buyer-alex", eventType: "accept-delivery", detail: "Delivery accepted", createdAt: "2026-04-11T12:00:00Z" },
+  { id: "t3", orderId: "order-luna-first-paid", actorId: "buyer-alex", eventType: "accept-delivery", detail: "Delivery accepted", createdAt: "2026-06-18T12:00:00Z" },
 ];
 
 export const seedLedger: LedgerEntry[] = [
   { id: "led-rose", artistId: "rose", orderId: "order-quiet-light", entryType: "available", amount: 120, createdAt: "2026-04-12T12:00:00Z" },
+  { id: "led-luna-first", artistId: "luna", orderId: "order-luna-first-paid", entryType: "available", amount: 45, createdAt: "2026-06-18T12:00:00Z" },
   { id: "led-leo", artistId: "leo", orderId: "order-first-flight", entryType: "pending", amount: 52, createdAt: "2026-08-12T12:00:00Z" },
 ];
 

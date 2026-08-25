@@ -27,6 +27,7 @@ const transitions: Record<OrderStatus, Transition[]> = {
   "sketch-review": [
     { action: "approve-sketch", roles: ["buyer"], next: "in-progress" },
     { action: "request-revision", roles: ["buyer"], next: "in-progress" },
+    { action: "cancel", roles: ["buyer", "artist"], next: "cancelled" },
   ],
   "final-review": [{ action: "accept-delivery", roles: ["buyer"], next: "completed" }],
   completed: [], declined: [], cancelled: [],

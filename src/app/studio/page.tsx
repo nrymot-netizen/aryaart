@@ -8,6 +8,7 @@ import { calculateSimulatedBalance } from "@/lib/domain/ledger";
 import { orderStatusLabel } from "@/lib/domain/orders";
 import { PageIntro } from "@/components/page-intro";
 import { PersonaContextBanner } from "@/features/demo/persona-context-banner";
+import { FirstPaidPieceCard } from "@/features/studio/first-paid-piece";
 import { Button } from "@/components/ui/button";
 import { StatusPill } from "@/components/status-pill";
 
@@ -38,6 +39,7 @@ export default function StudioPage() {
         {[{ icon: CurrencyDollar, label: "Available balance", value: `$${balance.available.toFixed(2)}` }, { icon: TrendUp, label: "Pending", value: `$${balance.pending.toFixed(2)}` }, { icon: PaintBrush, label: "Active projects", value: String(active.length) }, { icon: Eye, label: "New works in demo", value: String(created.length) }].map(({ icon: Icon, label, value }) => <div key={label} className="rounded-3xl border border-black/[0.07] bg-white p-5"><Icon size={22} className="text-plum" /><p className="mt-6 text-sm text-black/50">{label}</p><p className="mt-1 text-2xl font-bold tracking-tight">{value}</p></div>)}
       </div>
       <div className="mx-auto mt-10 grid max-w-5xl gap-6 px-4 pb-20 sm:px-6 lg:grid-cols-2">
+        <FirstPaidPieceCard artistId={artistId} />
         <section className="rounded-4xl bg-white p-5">
           <div className="flex items-center justify-between"><h2 className="font-bold">Availability</h2><StatusPill status={availability} slots={slots} /></div>
           <div className="mt-4 flex flex-wrap gap-2">{(["open", "limited", "waitlist", "closed"] as const).map((item) => <Button key={item} variant={availability === item ? "primary" : "ghost"} onClick={() => dispatch({ type: "update-availability", artistId, availability: item, slots: item === "limited" ? slots ?? 1 : undefined })}>{item}</Button>)}</div>

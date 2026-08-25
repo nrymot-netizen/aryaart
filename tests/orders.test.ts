@@ -15,6 +15,7 @@ describe("order transitions", () => {
   it("prevents a buyer from accepting their own request", () => expect(getNextOrderStatus("awaiting-artist", "accept-request", "buyer")).toBeNull());
   it("allows the buyer to complete checkout after terms are accepted", () => expect(getNextOrderStatus("payment-required", "complete-checkout", "buyer")).toBe("in-progress"));
   it("makes completed orders terminal", () => expect(getNextOrderStatus("completed", "cancel", "buyer")).toBeNull());
+  it("lets either person cancel while a sketch is in review", () => expect(getNextOrderStatus("sketch-review", "cancel", "buyer")).toBe("cancelled"));
 });
 
 describe("revisions", () => {

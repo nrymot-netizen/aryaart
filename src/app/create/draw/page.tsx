@@ -51,6 +51,8 @@ function CreateDrawForm() {
     const publishedAt = new Date().toISOString().slice(0, 10);
     dispatch({
       type: "create-artwork",
+      processOps: fromCanvas ? drawing.ops ?? studioRef.current?.exportOps() ?? [] : [],
+      paperColor: drawing.paperColor,
       artwork: {
         id,
         artistId,

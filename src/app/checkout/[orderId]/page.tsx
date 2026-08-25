@@ -6,6 +6,7 @@ import { getArtist, getService } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
 import { Button } from "@/components/ui/button";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
+import { LicenseNotice } from "@/features/license/license-notice";
 
 export default function CheckoutPage() {
   const params = useParams<{ orderId: string }>();
@@ -27,8 +28,10 @@ export default function CheckoutPage() {
         <p className="flex justify-between"><span>Service</span><strong>{service?.title}</strong></p>
         <p className="flex justify-between"><span>Accepted price</span><strong>${order.price}</strong></p>
         <p className="flex justify-between"><span>Deadline</span><strong>{order.deadline}</strong></p>
-        <p className="flex justify-between"><span>Usage</span><strong>{order.intendedUse}</strong></p>
         <p className="flex justify-between"><span>Revisions</span><strong>{order.revisionLimit}</strong></p>
+      </div>
+      <div className="mt-5">
+        <LicenseNotice intendedUse={order.intendedUse} artistName={artist?.displayName ?? "The artist"} storedHeadline={order.termsSnapshot?.licenseSummary} />
       </div>
       <div className="mt-5 rounded-3xl bg-mist p-4 text-sm">Demo payment method · Arya sandbox · **** 0000</div>
       {persona.accountType === "protected-teen" && <div className="mt-4"><ProtectedAccountNotice /></div>}

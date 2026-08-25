@@ -1,11 +1,15 @@
 # Arya Art Technical Architecture and Implementation Plan
 
 **Audience:** Cursor/Codex implementers and product reviewers  
-**Companion:** [Product Requirements](./PRODUCT_REQUIREMENTS.md)
+**Companion:** [Docs index](./README.md) · [Current state](./CURRENT_STATE.md) · [Product Requirements](./PRODUCT_REQUIREMENTS.md) · [Drawing Identity PRD](./DRAWING_IDENTITY_PRD.md) · [Demo and QA](./DEMO_AND_QA.md) · [Safety](./SAFETY.md) · [Deploy](./DEPLOY.md)
+
+**Next phase to implement:** Phase 9 (human-only challenges). Phases 0–8 are shipped on the mock demo. Do not rebuild them.
 
 ## 1. Delivery strategy
 
 Build a convincing vertical slice before broadening the marketplace. Keep mock-backed repository interfaces until the complete buyer/artist transaction works, then replace those adapters with Supabase. This preserves demo speed without embedding business logic in components.
+
+The vertical slice is already demonstrable locally and at https://aryaart.vercel.app. Remaining work extends it: honest license language, then replay/share/proof, then challenges, then backend.
 
 ### Definition of done for every phase
 
@@ -18,6 +22,10 @@ Build a convincing vertical slice before broadening the marketplace. Keep mock-b
 - Seed/demo reset produces a deterministic state.
 
 ## 2. Proposed application architecture
+
+**As-built:** routes live directly under `src/app/` (no route groups). Keep public URLs stable. Do not introduce `(marketplace)` groups unless there is a concrete routing need. Canvas UI is `src/features/canvas/`, not `components/canvas/`. There is no `src/repositories/` yet; the demo reducer is the store.
+
+Target layout (for Supabase-era work; do not reshuffle everything up front):
 
 ```text
 src/
@@ -92,6 +100,8 @@ Route groups organize code but must not change the public URLs.
 | Table/model | Important fields |
 | --- | --- |
 | `artworks` | id, artist_id, title, description, image_path, style, subject, tags, tools, ai_disclosure, visibility, published_at; tools include `Arya Canvas` when drawn in-app |
+| `process_logs` | artwork_or_file_id, sampled ops, paper, canvas size, challenge_id?; demo: store with created artwork; cap size for localStorage |
+| `share_exports` | derived replay + share card; not a vice-named table |
 | `posts` | id, artist_id, artwork_id, post_type, body, published_at |
 | `saves` | profile_id, saveable_type, saveable_id, created_at |
 | `reviews` | id, order_id, artist_id, buyer_id, rating, body, status, created_at |
@@ -105,7 +115,7 @@ Route groups organize code but must not change the public URLs.
 | `commission_requests` | id, buyer_id, artist_id, service_id, brief, options_json, deadline, budget_cents, intended_use, status |
 | `request_references` | id, request_id, storage_path, mime_type, size_bytes, caption |
 | `offers` | id, request_id, created_by, price_cents, deadline, revisions, terms_snapshot, status |
-| `orders` | id, accepted_offer_id, buyer_id, artist_id, status, price_cents, currency, terms_snapshot, revision_limit, revision_used |
+| `orders` | id, accepted_offer_id, buyer_id, artist_id, status, price_cents, currency, terms_snapshot (includes intended_use and license summary), revision_limit, revision_used |
 | `simulated_payments` | id, order_id, amount_cents, status, approved_by_parent, created_at |
 | `simulated_ledger` | id, artist_id, order_id, entry_type, amount_cents, available_at |
 
@@ -146,6 +156,7 @@ Use integer cents for money and immutable JSON snapshots for accepted terms. Sto
 - Only the artist can submit sketch/final file kinds, whether drawn in Arya or uploaded.
 - Only the buyer can approve/revise/accept delivery.
 - Only a completed-order buyer can review that order.
+- License copy on checkout is not a rights transfer.
 
 Apply these checks in both server domain logic and Supabase RLS. Storage policies must mirror database access; a private database row does not secure a public bucket.
 
@@ -163,6 +174,9 @@ Create pure services before wiring UI:
 - `calculateSimulatedBalance(ledger)`
 - `exportedDrawingToFile(drawing, kind)`
 - `isInlineArtworkSrc(src)`
+- `licenseSummary(intendedUse)` — teen-readable files vs license vs copyright; never “you own the art”
+- `humanMadeFromStrokes(artwork)` — true only for Arya Canvas + non-empty process log
+- `sampleProcessLog(ops)` — bound-size log for replay
 
 Every state mutation should execute transactionally with its timeline event and notification. For mock mode, emulate this with a single reducer/store command.
 
@@ -179,10 +193,28 @@ Recommended store slices:
 - waitlists
 - notifications
 - simulated ledger
+- created artworks/posts/services (already in the demo store)
+- process logs keyed by artwork or file id (Phase 8)
 
 Do not use scattered `useState` as the authoritative order state. Use a single command-based store so Buyer and Artist personas see the same transition.
 
 ## 8. Phased build plan
+
+### Status
+
+| Phase | Outcome | Status |
+| --- | --- | --- |
+| 0 Foundation | Primitives, demo switcher, tests | Shipped |
+| 1 Discovery | Search, art detail, profile tabs | Shipped |
+| 2 Request | Wizard, price, parent checkpoint | Shipped |
+| 3 Response + checkout | Accept/counter/decline, demo pay | Shipped |
+| 4 Workspace | Messages, sketch/final, review | Shipped |
+| 5 Create + Studio | Power canvas, publish, services | Shipped (layers in-session only) |
+| 6 Waitlists, notifications, polish | Connected supporting systems | Shipped enough to demo; polish is ongoing |
+| 7 Supabase | Shared backend | **Not started** — after UX validation |
+| 8 License + identity A | Copy + replay/share/proof | **Shipped** |
+| 9 Challenges | Human-only brief grid | **Next** |
+| 10 Process stories | Dual opt-in unboxing | After 9 |
 
 ### Phase 0 — Foundation hardening
 
@@ -316,6 +348,35 @@ Tasks:
 
 Exit criteria: two authenticated browser sessions complete the same flow with participant isolation tests passing.
 
+### Phase 8 — License copy and identity A (shipped)
+
+**Outcome:** A teen can state what they bought. A published Arya-canvas piece can replay and share without leaving the product.
+
+Tasks:
+
+1. Add `licenseSummary(intendedUse)` and show it on request review, checkout, and order snapshot (PRD §8.3.1). Never “you own the art.”
+2. Record a compact process log while drawing (sampled strokes/fills, paper, size). Cap size; reuse localStorage quota handling.
+3. Derive ~8–15s replay and a share card (still + Drawn on Arya; Human-made only with a non-empty log).
+4. Artwork detail: Play replay (opt-in; no autoplay when `prefers-reduced-motion`); copy/download share card.
+5. Uploads: no fake replay, no stroke-backed human-made mark.
+6. Studio: first paid piece moment after the artist’s first completed order.
+7. Events: `replay_played`, `share_card_copied`, `process_log_recorded`, `first_paid_piece_viewed` — product verbs only.
+8. Tests: empty log cannot claim proof; license copy helpers; existing marketplace tests still pass.
+
+Exit criteria: [Demo and QA](./DEMO_AND_QA.md) primary loop still works; license and identity A gates pass; no Appendix A language in UI.
+
+### Phase 9 — Human-only challenges
+
+**Outcome:** One seeded brief; Arya-canvas entries only; ranked by saves; Try this brief opens Create.
+
+See Drawing Identity PRD Loop 2. No follower ranking. No upload entries.
+
+### Phase 10 — Process stories
+
+**Outcome:** After final acceptance, public sketch→final only if both parties opt in. Protected teen default private.
+
+See Identity PRD Loop 3.
+
 ## 9. Testing plan
 
 ### Unit
@@ -328,6 +389,9 @@ Exit criteria: two authenticated browser sessions complete the same flow with pa
 - Discovery ranking excludes follower count.
 - Canvas export helpers produce JPEG data URLs and reject empty drawings.
 - Drawn files map to `DemoFile` with `source: "arya-canvas"`.
+- `licenseSummary` distinguishes personal vs commercial and never claims copyright transfer.
+- Empty process log cannot yield human-made-from-strokes.
+- Process log sampling stays under a documented size cap.
 
 ### Component
 
@@ -349,6 +413,10 @@ Exit criteria: two authenticated browser sessions complete the same flow with pa
 8. Artist creates a service from art → opens slot.
 9. In-progress order: artist draws sketch → buyer approves → artist draws final.
 10. Unauthorized persona cannot access another order workspace.
+11. Checkout license sentence is visible for personal and commercial.
+12. Canvas publish exposes replay and share; upload-only does not fake a replay.
+
+Manual coverage for 1–10 lives in [Demo and QA](./DEMO_AND_QA.md). Automate 11–12 with Vitest plus the artwork page when Phase 8 lands. Playwright e2e is still a gap.
 
 ### Visual and accessibility
 
@@ -358,41 +426,34 @@ Exit criteria: two authenticated browser sessions complete the same flow with pa
 
 ## 10. Cursor execution protocol
 
-Give Cursor one phase at a time. For each phase:
+Give Cursor **one phase at a time**, starting with Phase 9. For each phase:
 
-1. Read this plan and the relevant PRD section.
+1. Read [docs/README.md](./README.md), [CURRENT_STATE.md](./CURRENT_STATE.md), this plan, and the relevant PRD section.
 2. Inspect the repository and state current behavior before editing.
 3. Produce a file-level plan and identify risks.
 4. Implement the smallest coherent vertical slice.
 5. Add or update tests with the behavior.
-6. Run build, targeted tests, and route smoke checks.
+6. Run build, targeted tests, and the [Demo and QA](./DEMO_AND_QA.md) loops that the change can break.
 7. Report changed files, acceptance criteria met, and known gaps.
-8. Commit with a phase-scoped message only after review.
+8. Commit with a phase-scoped message only after the user asks.
 
-Suggested first Cursor instruction:
+Never print the private motivational model in UI. Never add generative fill, open DMs, follower counts, or wallet/NFT chrome.
+
+Suggested next Cursor instruction:
 
 ```text
-Implement Phase 0 from docs/IMPLEMENTATION_PLAN.md. Read docs/PRODUCT_REQUIREMENTS.md first. Preserve the existing visual direction and working routes. Introduce primitives, validation, demo persona state, and tests without starting Supabase or implementing later commission flows. Run the production build and tests, then report acceptance criteria and remaining gaps.
+Implement Phase 9 from docs/IMPLEMENTATION_PLAN.md. Read docs/README.md, docs/CURRENT_STATE.md, and docs/DRAWING_IDENTITY_PRD.md Loop 2 (not Appendix A in the UI). Add one human-only challenge brief, Arya-canvas entries only, ranked by saves. Do not start Supabase or NFT work. Preserve the marketplace loop and Phase 8 replay/license. Run npm test, typecheck, and build. Verify in the browser. Report gaps.
 ```
 
 ## 11. Immediate backlog
 
 | Priority | Item | Size | Dependency |
 | --- | --- | --- | --- |
-| P0 | Demo persona switcher and shared state | M | None |
-| P0 | Expanded domain types and state transitions | M | None |
-| P0 | UI primitives and form validation | M | None |
-| P0 | Complete Luna service request wizard | L | Above foundations |
-| P0 | Artist request response flow | L | Request wizard |
-| P0 | Simulated checkout | M | Accepted offer |
-| P0 | Workspace shell and milestones | L | Order creation |
-| P0 | In-app drawing studio | L | Create + workspace |
-| P1 | Sketch/revision/final workflow | L | Workspace |
-| P1 | Expanded artist content and tabs | M | Domain types |
-| P1 | Search/filter URL state | M | Expanded seed data |
-| P1 | Waitlist promotion | M | Notifications |
-| P1 | Studio creation tools | L | Shared forms + canvas |
+| P0 | Challenge grid | L | Identity A |
+| P1 | Process story dual opt-in | M | Completed orders |
+| P2 | Playwright smoke | M | Stable routes |
 | P2 | Supabase migration | XL | UX validation |
+| P3 | Provenance certificate (not NFT UX) | XL | Counsel + 18+ |
 
 ## 12. Architecture decision log
 
@@ -409,6 +470,10 @@ Implement Phase 0 from docs/IMPLEMENTATION_PLAN.md. Read docs/PRODUCT_REQUIREMEN
 | Realtime | Deferred, limited to messages/notifications | Not required to validate the core UX |
 | Drawing | In-browser canvas, JPEG export into demo store | Artists must be able to make work on Arya; localStorage cannot hold raw PSD/PNG layers |
 | Canvas vs upload | Canvas is primary; upload remains | Supports teens drawing here without blocking artists who already work in Procreate |
+| Hosting | Vercel Hobby from GitHub `main` | Public demo URL without Cursor hosting |
+| License | Files + usage license; artist keeps copyright | Industry default; see PRD §8.3.1 |
+| Identity UI | Replay, share card, human-made proof | Drawing is the ad; private hungers never named |
+| Provenance | Later certificate possible; no NFT chrome now | Wallets and mint-to-post fight teen safety |
 
 ## 13. Implementation risks
 
@@ -419,5 +484,7 @@ Implement Phase 0 from docs/IMPLEMENTATION_PLAN.md. Read docs/PRODUCT_REQUIREMEN
 - **Client-side authorization:** UI conditions improve UX but cannot replace server and RLS checks.
 - **Teen-safety false confidence:** label protections as simulated and require specialist legal/safety review before launch.
 - **Artwork performance:** require dimensions, responsive image sizes, thumbnails, and upload limits.
-- **Canvas storage:** compress exported drawings; catch localStorage quota errors; do not persist undo stroke history.
-- **Canvas overreach:** do not add AI generation, layers, or animation in the MVP.
+- **Canvas storage:** compress exported drawings; catch localStorage quota errors; do not persist full unsampled pointer history.
+- **Canvas overreach:** no generative fill, animation, CMYK, or PSD round-trip. Layers (max 8) are in-session only until a later persistence design.
+- **Identity leak:** never ship vice names, “hunger,” or NFT/mint language in UI.
+- **License confusion:** never imply the buyer owns copyright because they paid or received a file.

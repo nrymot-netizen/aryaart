@@ -35,6 +35,7 @@ import {
 export type DrawingStudioHandle = {
   exportDrawing: () => ExportedDrawing | null;
   hasMarks: () => boolean;
+  exportOps: () => CanvasOp[];
 };
 
 export type StudioReference = { id: string; name: string; preview?: string };
@@ -165,10 +166,21 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
     }
     ctx.globalAlpha = 1;
     const dataUrl = output.toDataURL("image/jpeg", CANVAS_JPEG_QUALITY);
-    return { dataUrl, byteLength: estimateDataUrlBytes(dataUrl), width: CANVAS_WIDTH, height: CANVAS_HEIGHT, paperColor: paper };
+    return {
+      dataUrl,
+      byteLength: estimateDataUrlBytes(dataUrl),
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      paperColor: paper,
+      ops: JSON.parse(JSON.stringify(opsRef.current)) as CanvasOp[],
+    };
   }, [canvasFor, hasMarks, paper]);
 
-  useImperativeHandle(ref, () => ({ exportDrawing: capture, hasMarks }), [capture, hasMarks]);
+  useImperativeHandle(ref, () => ({
+    exportDrawing: capture,
+    hasMarks,
+    exportOps: () => JSON.parse(JSON.stringify(opsRef.current)) as CanvasOp[],
+  }), [capture, hasMarks]);
 
   const rememberColor = (value: string) => {
     setColor(value);

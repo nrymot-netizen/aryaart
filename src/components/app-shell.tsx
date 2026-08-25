@@ -6,6 +6,7 @@ import { Bell, BookmarkSimple, Compass, PaintBrush, Receipt, Sparkle, Storefront
 import { Logo } from "./logo";
 import { PersonaSwitcher } from "@/features/demo/persona-switcher";
 import { useDemo } from "@/features/demo/demo-provider";
+import { AgeAttestation } from "@/features/safety/age-attestation";
 
 const nav = [
   { label: "Discover", href: "/", icon: Compass },
@@ -47,6 +48,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         })}
       </nav>
       )}
+      <AgeAttestation />
     </>
   );
 }

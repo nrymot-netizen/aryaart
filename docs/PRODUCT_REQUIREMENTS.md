@@ -3,7 +3,8 @@
 **Status:** Build-ready MVP specification  
 **Version:** 1.1  
 **Updated:** August 17, 2026  
-**Product type:** Responsive web art discovery, in-app drawing, and commission marketplace demo
+**Product type:** Responsive web art discovery, in-app drawing, and commission marketplace demo  
+**Companion:** [Docs index](./README.md) · [Implementation Plan](./IMPLEMENTATION_PLAN.md) · [Drawing Identity PRD](./DRAWING_IDENTITY_PRD.md)
 
 ## 1. Product summary
 
@@ -87,7 +88,7 @@ Artists face the inverse problems: low discoverability, repetitive qualification
 - Production moderation or trust-and-safety operations.
 - Open DMs, group chat, voice, or video.
 - Physical shipping and tax handling.
-- Native apps, school accounts, cryptocurrency, or NFTs.
+- Native apps, school accounts, cryptocurrency, or NFTs. (A later provenance certificate is an open door in the [Drawing Identity PRD](./DRAWING_IDENTITY_PRD.md); it is not in this MVP.)
 - AI image generation, AI inpainting, or text-to-image inside the canvas.
 - Unlimited Procreate/Photoshop parity (animation, CMYK, PSD round-trip, 50+ layers). The studio is a serious drawing desk with layers and real brushes, not a desktop illustration suite.
 
@@ -225,6 +226,49 @@ The price estimate updates from base price plus add-ons. The estimate is not a c
 - Draft request persists locally during the demo.
 - Protected teen financial actions trigger a simulated parent-approval checkpoint.
 - Submission creates an `Awaiting artist` request and notification.
+
+### 8.3.1 What the buyer owns (default license)
+
+Buying or commissioning on Arya is **not** buying the copyright. It is buying **files plus a license** to use those files in the ways the order names. This is the industry default for custom illustration. Counsel must still write production terms; the product must already tell this story in plain language at request, checkout, and delivery.
+
+Three separate things:
+
+| Thing | Who has it after a completed order | What it means |
+| --- | --- | --- |
+| The **files** | Buyer receives the agreed deliverables (PNG, TIFF, etc.). Artist may keep working files. | They have a copy. Having a file is not the same as owning the art as IP. |
+| The **license** (usage) | Buyer, for the uses they paid for, snapshot on the order. | What they may *do* with those files. |
+| The **copyright** | Stays with the **artist**, unless the order explicitly sells a rights transfer (not in MVP). | Who may copy, license to others, sell merch, make sequels of *this drawing*. |
+
+**Personal use (default on most services)** includes:
+
+- Keep and display the files privately.
+- Set as avatar, wallpaper, or lock screen.
+- Print copies for home, gifts, or a personal album.
+- Share the finished image with credit (“art by [artist]”) as a person, not as a shop.
+
+Personal use does **not** include: selling prints or merch, using the art in a paid product/game/ad, minting it, sublicensing it, or claiming they created it.
+
+**Commercial use** (when the service offers it, usually as an add-on) is a **wider license**, still not a copyright sale unless the terms say so. It lets the buyer use the art in the commercial context they selected (for example a book, game asset, or shop). The artist still owns the drawing. The buyer does not automatically get exclusive rights, trademark, or the right to register the work as theirs.
+
+**Characters vs this drawing:** If the buyer brought an original character, they already own that character. The artist owns *this picture of it*. The buyer may keep using their character; they may not treat the artist’s specific drawing as work they can relicense to a studio unless commercial/transfer terms say so. If the artist invents a new character in the piece, that character stays the artist’s unless the brief commissioned a character design with stated IP terms.
+
+**Portfolio:** The artist may show the work in their Arya portfolio and process posts unless the order is marked private. The buyer does not get to hide it by default.
+
+**Discover and saves:** Looking at or saving public art is not ownership. No license attaches until there is a completed order (or a separate stated license on a print product, which the MVP does not sell).
+
+**Prints:** Arya does not ship physical goods in the MVP. “Print-ready file” means the buyer may print under their license. It is not a shipped poster and not a merch license.
+
+**Later certificate / provenance:** A certificate would say “this buyer received this unique delivery, human-made on Arya, under these terms.” It does not replace copyright. It does not add print/merch rights the license did not already grant.
+
+Checkout and the order snapshot must show usage in one line a teen can understand, for example: “You get the files for personal use, including printing at home. [Artist] keeps the copyright.” Commercial: “You get the files plus a commercial license for [context]. [Artist] still owns the copyright.”
+
+Protected-teen commercial licenses still require the simulated parent-approval checkpoint.
+
+**Acceptance criteria**
+
+- Request, checkout, and completed-order summary each state files vs license vs copyright in plain language.
+- Personal vs commercial matches the accepted offer; commercial cannot be assumed from “I paid.”
+- Demo copy never says the buyer “owns the art” or “owns the NFT” as a substitute for a license.
 
 ### 8.4 Artist response
 
@@ -448,7 +492,7 @@ These do not block the demo but must be resolved before production planning:
 
 1. Marketplace fee model and who pays it.
 2. Refund, cancellation, chargeback, and dispute policy.
-3. Commercial-rights license language and ownership defaults.
+3. Production legal text for the default in §8.3.1 (files + license, artist keeps copyright). Exclusive buyouts, work-for-hire, and merch-only add-ons are later SKUs — not implied by personal use.
 4. Supported countries, currencies, and payout eligibility.
 5. Production parent/guardian relationship and approval mechanism.
 6. Age assurance and under-13 handling with counsel.
@@ -457,6 +501,7 @@ These do not block the demo but must be resolved before production planning:
 9. Ranking transparency and creator controls.
 10. Whether the canvas later adds layers, animation, or file round-trip with Procreate/Photoshop.
 11. Maximum canvas resolution and storage strategy once drawings leave local demo persistence.
+12. Much later: human-made / commission provenance (certificate language, not NFT marketplace UX). See Drawing Identity PRD §11.1.
 
 ## 15. Sources
 

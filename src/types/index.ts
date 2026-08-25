@@ -219,6 +219,19 @@ export interface AnalyticsEvent {
   payload?: Record<string, string | number | boolean>;
 }
 
+export interface OrderReport {
+  id: string;
+  orderId: string;
+  reporterId: string;
+  createdAt: string;
+}
+
+export interface OrderBlock {
+  orderId: string;
+  blockerId: string;
+  blockedId: string;
+}
+
 export interface RequestDraft {
   serviceId: string;
   buyerId: string;
@@ -261,6 +274,7 @@ export interface CommissionOrder {
     revisions: number;
     intendedUse: IntendedUse;
     addOnIds: string[];
+    licenseSummary?: string;
   };
   parentApprovalRequired: boolean;
   parentApproved: boolean;

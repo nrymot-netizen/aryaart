@@ -12,6 +12,8 @@ import { Checkbox, FormField, Input, Textarea } from "@/components/ui/form-field
 import { DrawingStudio } from "@/features/canvas/drawing-studio";
 import { drawingToDemoFile } from "@/lib/domain/canvas";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
+import { LicenseNotice } from "@/features/license/license-notice";
+import { evaluateContactFields, orderIsProtectedThread } from "@/lib/domain/safety";
 import { StatusPill } from "@/components/status-pill";
 
 const steps = ["Brief", "Options", "Timing", "References", "Review"];
@@ -73,6 +75,11 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
       setError(parsed.error.issues[0]?.message ?? "Please complete the required fields.");
       return;
     }
+    const contact = evaluateContactFields([brief, notes, ...references.map((file) => file.name)], orderIsProtectedThread({ buyerId: persona.id, artistId: artist.id }));
+    if (!contact.allowed) {
+      setError(contact.message ?? "Request not sent.");
+      return;
+    }
     persist();
     const result = dispatch({
       type: "submit-request",
@@ -110,6 +117,7 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
         {step === 1 && <div className="mt-8 space-y-5">
           <FormField label="Characters" hint={service.extraCharacterPrice ? `+$${service.extraCharacterPrice} each extra` : undefined}><Input type="number" min={1} max={5} value={characterCount} onChange={(event) => setCharacterCount(Number(event.target.value))} /></FormField>
           <fieldset><legend className="text-sm font-bold">Intended use</legend><div className="mt-2 flex gap-2">{(["personal", "commercial"] as const).filter((item) => service.usageOptions.includes(item)).map((item) => <button key={item} type="button" onClick={() => setIntendedUse(item)} className={`rounded-full px-4 py-2 text-sm font-semibold ${intendedUse === item ? "bg-ink text-white" : "bg-white"}`}>{item}{item === "commercial" && service.commercialSurcharge ? ` (+$${service.commercialSurcharge})` : ""}</button>)}</div></fieldset>
+          <LicenseNotice intendedUse={intendedUse} artistName={artist.displayName} />
           {service.addOns.length > 0 && <fieldset><legend className="text-sm font-bold">Add-ons</legend><div className="mt-2 space-y-2">{service.addOns.map((addOn) => <Checkbox key={addOn.id} label={`${addOn.name} · +$${addOn.price}`} checked={addOnIds.includes(addOn.id)} onChange={(event) => setAddOnIds(event.target.checked ? [...addOnIds, addOn.id] : addOnIds.filter((id) => id !== addOn.id))} />)}</div></fieldset>}
         </div>}
         {step === 2 && <div className="mt-8 grid gap-5 sm:grid-cols-2"><FormField label="Preferred deadline"><Input type="date" value={deadline} onChange={(event) => setDeadline(event.target.value)} /></FormField><FormField label="Budget ceiling" hint={`Estimate is $${estimate}, not a charge.`}><Input type="number" min={1} value={budget} onChange={(event) => setBudget(Number(event.target.value))} /></FormField></div>}
@@ -134,7 +142,8 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
         {step === 4 && <div className="mt-8 space-y-4">
           <FormField label="Notes for the artist"><Textarea value={notes} onChange={(event) => setNotes(event.target.value)} /></FormField>
           <Checkbox label="I accept this artist’s commission rules, revision policy, and in-app communication boundary." checked={rulesAccepted} onChange={(event) => setRulesAccepted(event.target.checked)} />
-          <div className="rounded-3xl bg-white p-5 text-sm leading-6"><strong>Review:</strong> {brief || "No brief yet"} · {characterCount} character{characterCount > 1 ? "s" : ""} · {intendedUse} · due {deadline} · estimate ${estimate}</div>
+          <div className="rounded-3xl bg-white p-5 text-sm leading-6"><strong>Review:</strong> {brief || "No brief yet"} · {characterCount} character{characterCount > 1 ? "s" : ""} · due {deadline} · estimate ${estimate}</div>
+          <LicenseNotice intendedUse={intendedUse} artistName={artist.displayName} />
           {artist.accountType === "protected-teen" && <ProtectedAccountNotice />}
         </div>}
 

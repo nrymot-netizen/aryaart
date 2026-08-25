@@ -1,6 +1,10 @@
-import { getService } from "@/data/mock-data";
+import { getArtist, getService } from "@/data/mock-data";
+import { ARYA_CANVAS_TOOL, type CanvasOp } from "@/lib/domain/canvas";
+import { isIdentityEvent } from "@/lib/domain/identity";
+import { licenseSummary } from "@/lib/domain/license";
 import { calculateCommissionEstimate, canUseRevision, getNextOrderStatus, milestoneBlueprint } from "@/lib/domain/orders";
-import { evaluateContactSharing } from "@/lib/domain/safety";
+import { buildProcessLog } from "@/lib/domain/process-log";
+import { evaluateContactFields, evaluateContactSharing, orderIsProtectedThread } from "@/lib/domain/safety";
 import { joinWaitlist, leaveWaitlist, promoteWaitlistEntry } from "@/lib/domain/waitlist";
 import type { Artwork, Availability, CommissionOrder, CommissionService, DemoFile, Milestone, Notification, OrderAction, PersonaRole, Post } from "@/types";
 import { createDemoState, type DemoPersistedState } from "./demo-state";
@@ -26,14 +30,20 @@ export type DemoCommand =
   | { type: "submit-request"; order: Omit<CommissionOrder, "id" | "createdAt" | "updatedAt" | "status"> }
   | { type: "respond"; orderId: string; action: Extract<OrderAction, "accept-request" | "counter-request" | "decline-request">; counter?: CommissionOrder["counter"]; decline?: CommissionOrder["decline"] }
   | { type: "buyer-respond"; orderId: string; action: Extract<OrderAction, "accept-counter" | "reject-counter" | "complete-checkout" | "approve-sketch" | "request-revision" | "accept-delivery">; feedback?: string }
-  | { type: "artist-deliver"; orderId: string; action: Extract<OrderAction, "submit-sketch" | "submit-final">; file: DemoFile }
-  | { type: "send-message"; orderId: string; body: string; protectedAccount: boolean }
+  | { type: "artist-deliver"; orderId: string; action: Extract<OrderAction, "submit-sketch" | "submit-final">; file: DemoFile; processOps?: CanvasOp[]; paperColor?: string }
+  | { type: "send-message"; orderId: string; body: string }
+  | { type: "cancel-order"; orderId: string }
+  | { type: "report-order"; orderId: string }
+  | { type: "block-order"; orderId: string }
+  | { type: "hide-review"; reviewId: string }
+  | { type: "report-review"; reviewId: string }
   | { type: "submit-review"; orderId: string; rating: number; body: string; serviceTitle: string }
-  | { type: "create-artwork"; artwork: Artwork; post?: Post }
+  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string }
   | { type: "create-service"; service: CommissionService }
   | { type: "update-availability"; artistId: string; availability: Availability; slots?: number }
   | { type: "mark-read"; id?: string }
   | { type: "parent-approve"; approvalId: string }
+  | { type: "track-event"; name: string; payload?: Record<string, string | number | boolean> }
   | { type: "load-scenario"; scenario: "luna-incoming" | "maya-open-slot" };
 
 export interface ReduceResult {
@@ -84,6 +94,22 @@ function replaceOrder(state: DemoPersistedState, order: CommissionOrder): DemoPe
   return { ...state, orders: state.orders.map((item) => (item.id === order.id ? order : item)) };
 }
 
+function lockedTerms(order: CommissionOrder, price: number, deadline: string, revisions: number) {
+  const artist = getArtist(order.artistId);
+  return {
+    serviceTitle: getService(order.serviceId)?.title ?? "Commission",
+    price,
+    deadline,
+    revisions,
+    intendedUse: order.intendedUse,
+    addOnIds: order.addOnIds,
+    licenseSummary: licenseSummary(order.intendedUse, {
+      artistName: artist?.displayName ?? "The artist",
+      commercialContext: "this commission",
+    }).headline,
+  };
+}
+
 function transition(order: CommissionOrder, action: OrderAction, role: PersonaRole, now: string): CommissionOrder | null {
   const next = getNextOrderStatus(order.status, action, role);
   if (!next) return null;
@@ -126,6 +152,11 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       return { state: { ...state, drafts: [...state.drafts.filter((draft) => !(draft.serviceId === command.draft.serviceId && draft.buyerId === command.draft.buyerId)), command.draft] } };
     case "submit-request": {
       if (ctx.role !== "buyer") return { state, error: "Only a buyer can submit a request." };
+      const contact = evaluateContactFields(
+        [command.order.brief, command.order.notes, ...command.order.references.map((file) => file.name)],
+        orderIsProtectedThread(command.order),
+      );
+      if (!contact.allowed) return { state, error: contact.message };
       const id = ctx.id("req");
       const parentGate = ctx.accountType === "protected-teen";
       const order: CommissionOrder = {
@@ -155,7 +186,7 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       const updated = transition(current, command.action, "artist", ctx.now);
       if (!updated) return { state, error: "That response isn’t available." };
       if (command.action === "accept-request") {
-        const priced = { ...updated, price: current.estimatedPrice, termsSnapshot: { serviceTitle: getService(current.serviceId)?.title ?? "Commission", price: current.estimatedPrice, deadline: current.deadline, revisions: current.revisionLimit, intendedUse: current.intendedUse, addOnIds: current.addOnIds } };
+        const priced = { ...updated, price: current.estimatedPrice, termsSnapshot: lockedTerms(current, current.estimatedPrice, current.deadline, current.revisionLimit) };
         let next = replaceOrder(systemMessage(timeline(state, ctx, current.id, "accept-request", "Artist accepted the request"), ctx, current.id, "The artist accepted. Simulated checkout is next."), priced);
         next = setMilestones(next, current.id, 1, 1);
         return { state: notify(track(next, ctx, "artist_response_submitted"), ctx, [{ profileId: current.buyerId, title: "Request accepted", detail: "Complete simulated checkout to open the workspace.", href: `/checkout/${current.id}`, type: "accepted" }]), toast: "Accepted. Buyer can check out." };
@@ -182,7 +213,7 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       const updated = transition(current, command.action, "buyer", ctx.now);
       if (!updated) return { state, error: "That action isn’t available." };
       if (command.action === "accept-counter" && current.counter) {
-        const priced = { ...updated, price: current.counter.price, revisionLimit: current.counter.revisions, deadline: current.counter.deadline, termsSnapshot: { serviceTitle: getService(current.serviceId)?.title ?? "Commission", price: current.counter.price, deadline: current.counter.deadline, revisions: current.counter.revisions, intendedUse: current.intendedUse, addOnIds: current.addOnIds } };
+        const priced = { ...updated, price: current.counter.price, revisionLimit: current.counter.revisions, deadline: current.counter.deadline, termsSnapshot: lockedTerms(current, current.counter.price, current.counter.deadline, current.counter.revisions) };
         let next = replaceOrder(systemMessage(timeline(state, ctx, current.id, "accept-counter", "Buyer accepted the counteroffer"), ctx, current.id, "Counteroffer accepted. Simulated checkout is next."), priced);
         next = setMilestones(next, current.id, 1, 1);
         return { state: notify(next, ctx, [{ profileId: current.artistId, title: "Counter accepted", detail: "Waiting on simulated checkout.", href: `/orders/${current.id}`, type: "accepted" }]), toast: "Terms accepted.", href: `/checkout/${current.id}` };
@@ -234,7 +265,20 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       const updated = transition(current, command.action, "artist", ctx.now);
       if (!updated) return { state, error: "That delivery isn’t available." };
       const file = { ...command.file, orderId: current.id, createdAt: ctx.now };
-      let next = { ...replaceOrder(state, updated), files: [...state.files, file] };
+      const processLog = buildProcessLog(
+        file.id,
+        "order-file",
+        command.processOps ?? [],
+        { paperColor: command.paperColor ?? "#fffdf8", width: 720, height: 900 },
+        ctx.now,
+        ctx.id("plog"),
+      );
+      let next = {
+        ...replaceOrder(state, updated),
+        files: [...state.files, file],
+        processLogs: processLog ? [processLog, ...state.processLogs.filter((item) => item.subjectId !== file.id)] : state.processLogs,
+      };
+      if (processLog) next = track(next, ctx, "process_log_recorded", { subject: "order-file" });
       if (command.action === "submit-sketch") {
         next = setMilestones(systemMessage(timeline(next, ctx, current.id, "submit-sketch", "Sketch submitted"), ctx, current.id, "A sketch was submitted for review."), current.id, 4, 4);
         return { state: notify(track(next, ctx, "sketch_submitted", { source: file.source === "arya-canvas" ? "canvas" : "upload" }), ctx, [{ profileId: current.buyerId, title: "Sketch submitted", detail: "Review the sketch and approve or request a revision.", href: `/orders/${current.id}`, type: "sketch-submitted" }]), toast: "Sketch sent.", href: `/orders/${current.id}` };
@@ -246,7 +290,10 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       const current = state.orders.find((item) => item.id === command.orderId);
       if (!current) return { state, error: "Order not found." };
       if (ctx.actorId !== current.buyerId && ctx.artistId !== current.artistId) return { state, error: "Messages stay inside this order." };
-      const safety = evaluateContactSharing(command.body, command.protectedAccount);
+      if (state.orderBlocks.some((item) => item.orderId === current.id && item.blockerId === ctx.actorId)) {
+        return { state, error: "You blocked this conversation in demo mode." };
+      }
+      const safety = evaluateContactSharing(command.body, orderIsProtectedThread(current));
       if (!safety.allowed) {
         const blocked = { id: ctx.id("msg"), orderId: command.orderId, senderId: ctx.actorId, body: command.body, kind: "user" as const, moderationState: "blocked" as const, createdAt: ctx.now };
         return { state: track({ ...state, messages: [...state.messages, blocked] }, ctx, "safety_message_blocked"), error: safety.message };
@@ -269,8 +316,72 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         toast: "Review published.",
       };
     }
-    case "create-artwork":
-      return { state: track({ ...state, createdArtworks: [command.artwork, ...state.createdArtworks], createdPosts: command.post ? [command.post, ...state.createdPosts] : state.createdPosts }, ctx, "artwork_published", { source: command.artwork.tools.includes("Arya Canvas") ? "canvas" : "upload" }), toast: "Artwork published.", href: `/art/${command.artwork.id}` };
+    case "cancel-order": {
+      const current = state.orders.find((item) => item.id === command.orderId);
+      if (!current) return { state, error: "Order not found." };
+      const isArtist = ctx.role === "artist" && ctx.artistId === current.artistId;
+      const isBuyer = ctx.role === "buyer" && ctx.actorId === current.buyerId;
+      if (!isArtist && !isBuyer) return { state, error: "Only the buyer or artist can leave this order." };
+      const updated = transition(current, "cancel", ctx.role, ctx.now);
+      if (!updated) return { state, error: "This order can no longer be cancelled." };
+      const next = replaceOrder(systemMessage(timeline(state, ctx, current.id, "cancel", "Order cancelled"), ctx, current.id, "Someone left this order. It is cancelled."), updated);
+      const otherId = isBuyer ? current.artistId : current.buyerId;
+      return { state: notify(track(next, ctx, "order_cancelled"), ctx, [{ profileId: otherId, title: "Order cancelled", detail: "The other person left this commission.", href: `/orders/${current.id}`, type: "cancelled" }]), toast: "Order cancelled." };
+    }
+    case "report-order": {
+      const current = state.orders.find((item) => item.id === command.orderId);
+      if (!current) return { state, error: "Order not found." };
+      if (ctx.actorId !== current.buyerId && ctx.artistId !== current.artistId) return { state, error: "Only people on this order can report it." };
+      const report = { id: ctx.id("rep"), orderId: current.id, reporterId: ctx.actorId, createdAt: ctx.now };
+      return { state: track({ ...state, orderReports: [report, ...state.orderReports] }, ctx, "report_submitted", { orderId: current.id }), toast: "Report received in demo mode. No moderator is on call." };
+    }
+    case "block-order": {
+      const current = state.orders.find((item) => item.id === command.orderId);
+      if (!current) return { state, error: "Order not found." };
+      const isArtist = ctx.role === "artist" && ctx.artistId === current.artistId;
+      const isBuyer = ctx.role === "buyer" && ctx.actorId === current.buyerId;
+      if (!isArtist && !isBuyer) return { state, error: "Only people on this order can block." };
+      const blockedId = isBuyer ? current.artistId : current.buyerId;
+      const existing = state.orderBlocks.find((item) => item.orderId === current.id && item.blockerId === ctx.actorId);
+      if (existing) {
+        return { state: { ...state, orderBlocks: state.orderBlocks.filter((item) => item !== existing) }, toast: "Unblocked in demo mode." };
+      }
+      return { state: track({ ...state, orderBlocks: [...state.orderBlocks, { orderId: current.id, blockerId: ctx.actorId, blockedId }] }, ctx, "order_blocked"), toast: "Blocked in demo mode. Their messages are hidden for you." };
+    }
+    case "hide-review": {
+      if (state.hiddenReviewIds.includes(command.reviewId)) return { state, toast: "Review already hidden in this demo." };
+      return { state: track({ ...state, hiddenReviewIds: [...state.hiddenReviewIds, command.reviewId] }, ctx, "review_hidden"), toast: "Review hidden in demo mode." };
+    }
+    case "report-review": {
+      const reported = state.reportedReviewIds.includes(command.reviewId) ? state.reportedReviewIds : [...state.reportedReviewIds, command.reviewId];
+      return { state: track({ ...state, reportedReviewIds: reported }, ctx, "report_submitted", { reviewId: command.reviewId }), toast: "Report received in demo mode. No moderator is on call." };
+    }
+    case "create-artwork": {
+      const processLog = buildProcessLog(
+        command.artwork.id,
+        "artwork",
+        command.processOps ?? [],
+        { paperColor: command.paperColor ?? "#fffdf8", width: 720, height: 900 },
+        ctx.now,
+        ctx.id("plog"),
+      );
+      const tools = processLog
+        ? [ARYA_CANVAS_TOOL, ...command.artwork.tools.filter((tool) => tool !== ARYA_CANVAS_TOOL)]
+        : command.artwork.tools.filter((tool) => tool !== ARYA_CANVAS_TOOL);
+      const artwork = {
+        ...command.artwork,
+        tools: tools.length ? tools : ["Uploaded file"],
+      };
+      let next: DemoPersistedState = {
+        ...state,
+        createdArtworks: [artwork, ...state.createdArtworks],
+        createdPosts: command.post ? [command.post, ...state.createdPosts] : state.createdPosts,
+        processLogs: processLog ? [processLog, ...state.processLogs.filter((item) => item.subjectId !== artwork.id)] : state.processLogs,
+      };
+      next = track(next, ctx, "artwork_published", { source: processLog ? "canvas" : "upload" });
+      if (processLog) next = track(next, ctx, "process_log_recorded", { subject: "artwork" });
+      return { state: next, toast: "Artwork published.", href: `/art/${command.artwork.id}` };
+    }
     case "create-service":
       return { state: { ...state, createdServices: [command.service, ...state.createdServices] }, toast: "Service published.", href: `/commissions/${command.service.id}` };
     case "update-availability":
@@ -285,6 +396,16 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
           }),
         },
       };
+    case "track-event": {
+      if (!isIdentityEvent(command.name)) return { state };
+      if (
+        command.name === "first_paid_piece_viewed" &&
+        state.events.some((event) => event.name === command.name && event.payload?.orderId === command.payload?.orderId)
+      ) {
+        return { state };
+      }
+      return { state: track(state, ctx, command.name, command.payload) };
+    }
     case "parent-approve": {
       const approval = state.parentApprovals.find((item) => item.id === command.approvalId);
       if (!approval) return { state, error: "Approval not found." };

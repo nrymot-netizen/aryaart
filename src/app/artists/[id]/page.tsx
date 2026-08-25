@@ -10,10 +10,11 @@ import { ProtectedAccountNotice } from "@/components/safety/protected-account-no
 import { SaveArtistButton } from "@/features/saves/save-button";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { WaitlistButton } from "@/features/waitlist/waitlist-button";
-import { artists, getArtist, getArtistArt, getArtistPosts, getArtistReviews, getArtistServices, getArtwork } from "@/data/mock-data";
+import { artists, getArtist, getArtistArt, getArtistPosts, getArtistServices, getArtwork } from "@/data/mock-data";
 import type { ArtistProfileTab } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { CreatedArtistWork } from "@/features/studio/created-artist-work";
+import { ReviewList } from "@/features/reviews/review-list";
 
 const tabs: { id: ArtistProfileTab; label: string }[] = [
   { id: "portfolio", label: "Portfolio" },
@@ -122,18 +123,6 @@ function ServiceList({ artistId }: { artistId: string }) {
       <p className="mt-3 text-sm"><strong>From ${service.startingPrice}</strong> · {service.turnaround} · {service.revisions} revisions</p>
       <ul className="mt-3 list-disc pl-5 text-sm text-black/60">{service.includes.map((item) => <li key={item}>{item}</li>)}</ul>
       <Link href={`/commissions/${service.id}`} className="mt-4 inline-flex text-sm font-bold text-plum">View service →</Link>
-    </article>
-  ))}</div>;
-}
-
-function ReviewList({ artistId }: { artistId: string }) {
-  const items = getArtistReviews(artistId);
-  if (!items.length) return <EmptyState icon={Star} title="No reviews yet" description="Reviews appear after a completed commission." />;
-  return <div className="space-y-4">{items.map((review) => (
-    <article key={review.id} className="rounded-3xl border border-black/[0.07] bg-white p-5">
-      <div className="flex items-center justify-between gap-3"><strong>{review.author}</strong><span className="flex items-center gap-1 text-sm font-bold"><Star size={14} weight="fill" className="text-amber-400" />{review.rating}</span></div>
-      <p className="mt-1 text-xs text-black/45">{review.serviceTitle} · {formatDate(review.createdAt)}</p>
-      <p className="mt-3 leading-7 text-black/70">{review.body}</p>
     </article>
   ))}</div>;
 }

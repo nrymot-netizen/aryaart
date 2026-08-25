@@ -1,0 +1,12 @@
+---
+description: Keep Arya product docs the source of truth when editing docs
+globs: docs/**/*.md
+alwaysApply: false
+---
+
+# Docs
+
+- Index lives in `docs/README.md`. Link new docs from there.
+- `CURRENT_STATE.md` is the as-built map. Update it when a phase ships.
+- Do not duplicate PRD behavior in three places. Point to PRD § or Identity loops.
+- Never put Appendix A hungers in README, DEPLOY, or user-facing copy examples beyond “do not ship these words.”

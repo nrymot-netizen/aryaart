@@ -70,6 +70,7 @@ export interface ExportedDrawing {
   width: number;
   height: number;
   paperColor: string;
+  ops?: CanvasOp[];
 }
 
 export function isInlineArtworkSrc(src: string): boolean {
@@ -177,7 +178,7 @@ function stampPolyline(ctx: CanvasRenderingContext2D, stroke: CanvasStroke, poin
 
 export function drawingToDemoFile(drawing: ExportedDrawing, kind: DemoFile["kind"], name: string, createdAt: string): DemoFile {
   return {
-    id: `${kind}-${name}`,
+    id: `${kind}-${createdAt.replace(/[^\d]/g, "").slice(-10)}-${name.replace(/[^a-z0-9]+/gi, "").slice(0, 12)}`,
     name,
     type: "image/jpeg",
     size: drawing.byteLength,

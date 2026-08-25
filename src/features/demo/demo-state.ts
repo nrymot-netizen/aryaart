@@ -1,7 +1,8 @@
-import type { AccountType, AnalyticsEvent, Artwork, Availability, CommissionOrder, CommissionService, DemoFile, LedgerEntry, Milestone, Notification, OrderMessage, ParentApproval, PersonaRole, Post, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
+import type { AccountType, AnalyticsEvent, Artwork, Availability, CommissionOrder, CommissionService, DemoFile, LedgerEntry, Milestone, Notification, OrderBlock, OrderMessage, OrderReport, ParentApproval, PersonaRole, Post, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
 import { seedDemoNotifications, seedLedger, seedMessages, seedMilestones, seedOrders, seedTimeline } from "@/data/seed-orders";
 import { seedWaitlists } from "@/data/mock-data";
 import { defaultDemoPersona } from "@/features/demo/demo-personas";
+import { seedLanternArtwork, seedLanternLog, seedLanternPost } from "@/data/seed-lantern";
 
 export const DEMO_STATE_VERSION = 2;
 export const demoStateKey = "arya-demo-state-v2";
@@ -28,6 +29,11 @@ export interface DemoPersistedState {
   createdReviews: Review[];
   artistAvailability: Record<string, { availability: Availability; slots?: number }>;
   events: AnalyticsEvent[];
+  orderReports: OrderReport[];
+  orderBlocks: OrderBlock[];
+  hiddenReviewIds: string[];
+  reportedReviewIds: string[];
+  processLogs: ProcessLog[];
 }
 
 export function createDemoState(personaId = defaultDemoPersona.id): DemoPersistedState {
@@ -46,12 +52,17 @@ export function createDemoState(personaId = defaultDemoPersona.id): DemoPersiste
     notifications: seedDemoNotifications.map((item) => ({ ...item })),
     ledger: seedLedger.map((item) => ({ ...item })),
     parentApprovals: [],
-    createdArtworks: [],
-    createdPosts: [],
+    createdArtworks: [{ ...seedLanternArtwork }],
+    createdPosts: [{ ...seedLanternPost }],
     createdServices: [],
     createdReviews: [],
     artistAvailability: {},
     events: [],
+    orderReports: [],
+    orderBlocks: [],
+    hiddenReviewIds: [],
+    reportedReviewIds: [],
+    processLogs: [{ ...seedLanternLog, ops: seedLanternLog.ops.map((op) => ({ ...op })) }],
   };
 }
 
@@ -82,12 +93,17 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       notifications: Array.isArray(parsed.notifications) ? parsed.notifications : fallback.notifications,
       ledger: Array.isArray(parsed.ledger) ? parsed.ledger : fallback.ledger,
       parentApprovals: Array.isArray(parsed.parentApprovals) ? parsed.parentApprovals : [],
-      createdArtworks: Array.isArray(parsed.createdArtworks) ? parsed.createdArtworks : [],
-      createdPosts: Array.isArray(parsed.createdPosts) ? parsed.createdPosts : [],
+      createdArtworks: Array.isArray(parsed.createdArtworks) ? parsed.createdArtworks : fallback.createdArtworks,
+      createdPosts: Array.isArray(parsed.createdPosts) ? parsed.createdPosts : fallback.createdPosts,
       createdServices: Array.isArray(parsed.createdServices) ? parsed.createdServices : [],
       createdReviews: Array.isArray(parsed.createdReviews) ? parsed.createdReviews : [],
       artistAvailability: parsed.artistAvailability ?? {},
       events: Array.isArray(parsed.events) ? parsed.events : [],
+      orderReports: Array.isArray(parsed.orderReports) ? parsed.orderReports : [],
+      orderBlocks: Array.isArray(parsed.orderBlocks) ? parsed.orderBlocks : [],
+      hiddenReviewIds: Array.isArray(parsed.hiddenReviewIds) ? parsed.hiddenReviewIds : [],
+      reportedReviewIds: Array.isArray(parsed.reportedReviewIds) ? parsed.reportedReviewIds : [],
+      processLogs: Array.isArray(parsed.processLogs) ? parsed.processLogs : fallback.processLogs,
     };
   } catch {
     return fallback;

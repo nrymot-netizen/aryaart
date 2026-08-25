@@ -1,0 +1,17 @@
+---
+description: Arya Art product constraints for every change
+alwaysApply: true
+---
+
+# Arya Art
+
+Read `docs/README.md` then `docs/CURRENT_STATE.md` before building. Phases 0–8 are shipped. Next is Phase 9.
+
+- Art leads. No follower counts. No open DMs. No generative AI in the canvas.
+- Demo payments stay labeled simulated. No real cards, Supabase, or wallets unless a later phase says so.
+- Protected teens: never exact age in public UI. Contact-sharing stays blocked.
+- Buyer gets files plus a license; artist keeps copyright. Never say the buyer “owns the art” or “owns the NFT.”
+- Private motivational model (Identity PRD Appendix A) never appears in UI, marketing, events, or share cards.
+- No NFT/mint/gas/floor chrome. Provenance is a later certificate, not a marketplace.
+- Mutations go through the demo reducer commands, not scattered `useState` for orders.
+- After UI changes: `npm test`, `npm run typecheck`, and browser-check the flow (not only a screenshot).
