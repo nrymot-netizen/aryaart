@@ -3,6 +3,7 @@ import { seedDemoNotifications, seedLedger, seedMessages, seedMilestones, seedOr
 import { seedWaitlists } from "@/data/mock-data";
 import { defaultDemoPersona } from "@/features/demo/demo-personas";
 import { seedLanternArtwork, seedLanternLog, seedLanternPost } from "@/data/seed-lantern";
+import type { ProcessLog } from "@/lib/domain/process-log";
 
 export const DEMO_STATE_VERSION = 2;
 export const demoStateKey = "arya-demo-state-v2";
