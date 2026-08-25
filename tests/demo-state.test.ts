@@ -19,4 +19,15 @@ describe("demo persistence helpers", () => {
   it("falls back when the snapshot is corrupt", () => {
     expect(parseDemoState("{not json", "luna").personaId).toBe("luna");
   });
+
+  it("adds the seeded lantern to older v2 snapshots that lack it", () => {
+    const older = createDemoState("buyer-alex");
+    older.createdArtworks = [];
+    older.createdPosts = [];
+    older.processLogs = [];
+    const parsed = parseDemoState(JSON.stringify(older));
+    expect(parsed.createdArtworks.some((item) => item.id === "lantern-study")).toBe(true);
+    expect(parsed.createdPosts.some((item) => item.id === "post-lantern-study")).toBe(true);
+    expect(parsed.processLogs.some((item) => item.id === "plog-lantern-study")).toBe(true);
+  });
 });

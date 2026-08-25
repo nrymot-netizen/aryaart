@@ -71,6 +71,10 @@ export function toggleSavedId(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
 }
 
+function withSeedItem<T extends { id: string }>(items: T[], seed: T): T[] {
+  return items.some((item) => item.id === seed.id) ? items : [seed, ...items];
+}
+
 export function parseDemoState(raw: string | null, legacyPersona?: string | null): DemoPersistedState {
   const fallback = createDemoState(legacyPersona && legacyPersona.length ? legacyPersona : defaultDemoPersona.id);
   if (!raw) return fallback;
@@ -94,8 +98,8 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       notifications: Array.isArray(parsed.notifications) ? parsed.notifications : fallback.notifications,
       ledger: Array.isArray(parsed.ledger) ? parsed.ledger : fallback.ledger,
       parentApprovals: Array.isArray(parsed.parentApprovals) ? parsed.parentApprovals : [],
-      createdArtworks: Array.isArray(parsed.createdArtworks) ? parsed.createdArtworks : fallback.createdArtworks,
-      createdPosts: Array.isArray(parsed.createdPosts) ? parsed.createdPosts : fallback.createdPosts,
+      createdArtworks: withSeedItem(Array.isArray(parsed.createdArtworks) ? parsed.createdArtworks : fallback.createdArtworks, { ...seedLanternArtwork }),
+      createdPosts: withSeedItem(Array.isArray(parsed.createdPosts) ? parsed.createdPosts : fallback.createdPosts, { ...seedLanternPost }),
       createdServices: Array.isArray(parsed.createdServices) ? parsed.createdServices : [],
       createdReviews: Array.isArray(parsed.createdReviews) ? parsed.createdReviews : [],
       artistAvailability: parsed.artistAvailability ?? {},
@@ -104,7 +108,7 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       orderBlocks: Array.isArray(parsed.orderBlocks) ? parsed.orderBlocks : [],
       hiddenReviewIds: Array.isArray(parsed.hiddenReviewIds) ? parsed.hiddenReviewIds : [],
       reportedReviewIds: Array.isArray(parsed.reportedReviewIds) ? parsed.reportedReviewIds : [],
-      processLogs: Array.isArray(parsed.processLogs) ? parsed.processLogs : fallback.processLogs,
+      processLogs: withSeedItem(Array.isArray(parsed.processLogs) ? parsed.processLogs : fallback.processLogs, { ...seedLanternLog, ops: seedLanternLog.ops.map((op) => ({ ...op })) }),
     };
   } catch {
     return fallback;
