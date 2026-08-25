@@ -55,6 +55,49 @@ describe("demo commission loop", () => {
     expect(calculateSimulatedBalance(state.ledger, "luna").available).toBeGreaterThan(0);
   });
 
+  it("records canvas as the source when Luna draws a sketch on Arya", () => {
+    let { state } = request();
+    const id = state.orders[0].id;
+    state = reduceDemoState(state, { type: "respond", orderId: id, action: "accept-request" }, luna).state;
+    state = reduceDemoState(state, { type: "buyer-respond", orderId: id, action: "complete-checkout" }, buyer).state;
+    state = reduceDemoState(state, {
+      type: "artist-deliver",
+      orderId: id,
+      action: "submit-sketch",
+      file: { id: "sk", name: "sketch.jpg", type: "image/jpeg", size: 1200, kind: "sketch", source: "arya-canvas", preview: "data:image/jpeg;base64,aaaa", createdAt: buyer.now },
+    }, luna).state;
+    expect(state.orders[0].status).toBe("sketch-review");
+    expect(state.files.some((file) => file.source === "arya-canvas" && file.kind === "sketch")).toBe(true);
+    expect(state.events.some((event) => event.name === "sketch_submitted" && event.payload?.source === "canvas")).toBe(true);
+  });
+
+  it("publishes a canvas drawing into the demo portfolio", () => {
+    const result = reduceDemoState(createDemoState(), {
+      type: "create-artwork",
+      artwork: {
+        id: "art-canvas-demo",
+        artistId: "luna",
+        title: "Night garden",
+        description: "Drawn on Arya.",
+        image: "data:image/jpeg;base64,aaaa",
+        style: "Anime",
+        subject: "character",
+        tags: ["anime"],
+        tools: ["Arya Canvas"],
+        aiDisclosure: false,
+        visibility: "public",
+        publishedAt: "2026-08-17",
+        price: 40,
+        likes: 0,
+        isNew: true,
+        format: "digital",
+      },
+    }, luna);
+    expect(result.state.createdArtworks[0]?.id).toBe("art-canvas-demo");
+    expect(result.href).toBe("/art/art-canvas-demo");
+    expect(result.state.events.some((event) => event.name === "artwork_published" && event.payload?.source === "canvas")).toBe(true);
+  });
+
   it("blocks a buyer from accepting their own request", () => {
     const submitted = request();
     const result = reduceDemoState(submitted.state, { type: "respond", orderId: submitted.state.orders[0].id, action: "accept-request" }, buyer);

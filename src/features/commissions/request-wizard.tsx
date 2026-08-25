@@ -9,6 +9,8 @@ import { canRequestCommission } from "@/lib/domain/availability";
 import { useDemo } from "@/features/demo/demo-provider";
 import { Button } from "@/components/ui/button";
 import { Checkbox, FormField, Input, Textarea } from "@/components/ui/form-field";
+import { DrawingStudio } from "@/features/canvas/drawing-studio";
+import { drawingToDemoFile } from "@/lib/domain/canvas";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
 import { StatusPill } from "@/components/status-pill";
 
@@ -28,6 +30,7 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
   const [rulesAccepted, setRulesAccepted] = useState(existingDraft?.rulesAccepted ?? false);
   const [references, setReferences] = useState<DemoFile[]>(existingDraft?.references ?? []);
   const [error, setError] = useState<string | null>(null);
+  const [drawReference, setDrawReference] = useState(false);
 
   const selectedAddOns = service.addOns.filter((addOn) => addOnIds.includes(addOn.id));
   const estimate = useMemo(
@@ -58,7 +61,7 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
         continue;
       }
       const preview = file.type.startsWith("image/") ? await fileToDataUrl(file) : undefined;
-      next.push({ id: `ref-${file.name}-${file.size}`, name: file.name, type: file.type || "file", size: file.size, kind: "reference", preview, createdAt: new Date().toISOString() });
+      next.push({ id: `ref-${file.name}-${file.size}`, name: file.name, type: file.type || "file", size: file.size, kind: "reference", preview, source: "upload", createdAt: new Date().toISOString() });
     }
     setReferences((current) => [...current, ...next]);
   };
@@ -112,7 +115,21 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
         {step === 2 && <div className="mt-8 grid gap-5 sm:grid-cols-2"><FormField label="Preferred deadline"><Input type="date" value={deadline} onChange={(event) => setDeadline(event.target.value)} /></FormField><FormField label="Budget ceiling" hint={`Estimate is $${estimate}, not a charge.`}><Input type="number" min={1} value={budget} onChange={(event) => setBudget(Number(event.target.value))} /></FormField></div>}
         {step === 3 && <div className="mt-8 space-y-4">
           <FormField label="References" hint="Images stay private to this project."><Input type="file" multiple accept="image/*,.pdf" onChange={(event) => onFiles(event.target.files)} /></FormField>
-          <ul className="space-y-2">{references.map((file) => <li key={file.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm"><span>{file.name} · {(file.size / 1024).toFixed(0)} KB</span><button type="button" className="font-bold text-plum" onClick={() => setReferences((current) => current.filter((item) => item.id !== file.id))}>Remove</button></li>)}</ul>
+          <Button variant="secondary" onClick={() => setDrawReference((open) => !open)}>{drawReference ? "Hide sketch pad" : "Draw a reference"}</Button>
+          {drawReference && (
+            <div className="rounded-[1.6rem] border border-black/[0.07] bg-white p-4">
+              <DrawingStudio
+                compact
+                actionLabel="Add drawn reference"
+                onExport={(drawing) => {
+                  const file = drawingToDemoFile(drawing, "reference", `reference-${references.length + 1}.jpg`, new Date().toISOString());
+                  setReferences((current) => [...current, file]);
+                  setDrawReference(false);
+                }}
+              />
+            </div>
+          )}
+          <ul className="space-y-2">{references.map((file) => <li key={file.id} className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm"><span>{file.name} · {(file.size / 1024).toFixed(0)} KB{file.source === "arya-canvas" ? " · drawn" : ""}</span><button type="button" className="font-bold text-plum" onClick={() => setReferences((current) => current.filter((item) => item.id !== file.id))}>Remove</button></li>)}</ul>
         </div>}
         {step === 4 && <div className="mt-8 space-y-4">
           <FormField label="Notes for the artist"><Textarea value={notes} onChange={(event) => setNotes(event.target.value)} /></FormField>

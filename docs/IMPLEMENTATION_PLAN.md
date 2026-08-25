@@ -33,12 +33,14 @@ src/
     artists/                 artist presentation
     commissions/             services and request forms
     workspace/               messages, files, milestones, approvals
+    canvas/                  drawing studio chrome
     safety/                  protected-account and blocked-message UI
   features/
     auth/
     discovery/
     commissions/
     orders/
+    canvas/                  in-app drawing engine
     studio/
     notifications/
     safety/
@@ -89,7 +91,7 @@ Route groups organize code but must not change the public URLs.
 
 | Table/model | Important fields |
 | --- | --- |
-| `artworks` | id, artist_id, title, description, image_path, style, subject, tags, tools, ai_disclosure, visibility, published_at |
+| `artworks` | id, artist_id, title, description, image_path, style, subject, tags, tools, ai_disclosure, visibility, published_at; tools include `Arya Canvas` when drawn in-app |
 | `posts` | id, artist_id, artwork_id, post_type, body, published_at |
 | `saves` | profile_id, saveable_type, saveable_id, created_at |
 | `reviews` | id, order_id, artist_id, buyer_id, rating, body, status, created_at |
@@ -112,7 +114,7 @@ Route groups organize code but must not change the public URLs.
 | Table/model | Important fields |
 | --- | --- |
 | `messages` | id, order_id, sender_id, body, moderation_state, created_at |
-| `files` | id, order_id, uploader_id, kind, storage_path, mime_type, size_bytes, version, created_at |
+| `files` | id, order_id, uploader_id, kind, storage_path, mime_type, size_bytes, version, source (`arya-canvas` \| `upload`), created_at |
 | `milestones` | id, order_id, type, status, due_at, completed_at |
 | `timeline_events` | id, order_id, actor_id, event_type, payload_json, created_at |
 | `waitlist_entries` | id, artist_id, service_id, buyer_id, position_key, status, promoted_at, expires_at |
@@ -141,7 +143,7 @@ Use integer cents for money and immutable JSON snapshots for accepted terms. Sto
 - Only a buyer can submit a request as themselves.
 - Only the requested artist can accept, counter, or decline.
 - Only the buyer can accept a counter or complete simulated checkout.
-- Only the artist can submit sketch/final file kinds.
+- Only the artist can submit sketch/final file kinds, whether drawn in Arya or uploaded.
 - Only the buyer can approve/revise/accept delivery.
 - Only a completed-order buyer can review that order.
 
@@ -159,6 +161,8 @@ Create pure services before wiring UI:
 - `rankDiscoveryCandidates(profileSignals, candidates)`
 - `promoteWaitlistEntry(entries, slot)`
 - `calculateSimulatedBalance(ledger)`
+- `exportedDrawingToFile(drawing, kind)`
+- `isInlineArtworkSrc(src)`
 
 Every state mutation should execute transactionally with its timeline event and notification. For mock mode, emulate this with a single reducer/store command.
 
@@ -255,8 +259,8 @@ Tasks:
 3. Add message contact-sharing guard and blocked-message state.
 4. Implement reference/deliverable file views.
 5. Build milestone timeline.
-6. Add sketch upload, approval, and revision feedback.
-7. Add final upload and delivery acceptance.
+6. Add sketch drawing (primary) and upload (alternative), approval, and revision feedback.
+7. Add final drawing/upload and delivery acceptance.
 8. Complete order and move simulated earnings from pending to available.
 9. Add review flow.
 
@@ -268,15 +272,17 @@ Exit criteria: role-switching completes the primary 16-step buyer journey withou
 
 Tasks:
 
-1. Build artwork/post creation forms.
-2. Implement “Offer commissions like this.”
-3. Build service editor with examples, add-ons, rules, and preview.
-4. Build availability and slot controls.
-5. Complete Studio request/project dashboards.
-6. Add simulated balance and ledger views.
-7. Support unpublished draft and published states.
+1. Build the drawing studio (pencil/ink/marker/airbrush, layers, fill, eyedropper, symmetry, zoom, stabilizer, export).
+2. Build artwork/post creation around the canvas, with file upload as fallback.
+3. Implement “Offer commissions like this.”
+4. Build service editor with examples, add-ons, rules, and preview.
+5. Build availability and slot controls.
+6. Complete Studio request/project dashboards.
+7. Add simulated balance and ledger views.
+8. Support unpublished draft and published states.
+9. Surface published canvas work in Discover and artist portfolio.
 
-Exit criteria: artist creates artwork, derives a service, opens slots, receives the seeded buyer request, and sees earnings after completion.
+Exit criteria: artist draws and publishes artwork, derives a service, opens slots, receives the seeded buyer request, draws sketch/final in the workspace, and sees earnings after completion.
 
 ### Phase 6 — Waitlists, notifications, and polish
 
@@ -320,6 +326,8 @@ Exit criteria: two authenticated browser sessions complete the same flow with pa
 - Waitlist ordering/promotion.
 - Contact-sharing matcher and false-positive cases.
 - Discovery ranking excludes follower count.
+- Canvas export helpers produce JPEG data URLs and reject empty drawings.
+- Drawn files map to `DemoFile` with `source: "arya-canvas"`.
 
 ### Component
 
@@ -337,8 +345,10 @@ Exit criteria: two authenticated browser sessions complete the same flow with pa
 4. Sketch revision consumes one revision and preserves timeline.
 5. Protected teen attempts to share email/phone and receives blocked-message UI.
 6. Join SketchMaya waitlist → open slot → promotion notification.
-7. Artist creates artwork → creates service from art → opens slot.
-8. Unauthorized persona cannot access another order workspace.
+7. Artist draws artwork on Arya → publishes → piece appears in Discover and `/art/[id]`.
+8. Artist creates a service from art → opens slot.
+9. In-progress order: artist draws sketch → buyer approves → artist draws final.
+10. Unauthorized persona cannot access another order workspace.
 
 ### Visual and accessibility
 
@@ -376,11 +386,12 @@ Implement Phase 0 from docs/IMPLEMENTATION_PLAN.md. Read docs/PRODUCT_REQUIREMEN
 | P0 | Artist request response flow | L | Request wizard |
 | P0 | Simulated checkout | M | Accepted offer |
 | P0 | Workspace shell and milestones | L | Order creation |
+| P0 | In-app drawing studio | L | Create + workspace |
 | P1 | Sketch/revision/final workflow | L | Workspace |
 | P1 | Expanded artist content and tabs | M | Domain types |
 | P1 | Search/filter URL state | M | Expanded seed data |
 | P1 | Waitlist promotion | M | Notifications |
-| P1 | Studio creation tools | L | Shared forms |
+| P1 | Studio creation tools | L | Shared forms + canvas |
 | P2 | Supabase migration | XL | UX validation |
 
 ## 12. Architecture decision log
@@ -396,6 +407,8 @@ Implement Phase 0 from docs/IMPLEMENTATION_PLAN.md. Read docs/PRODUCT_REQUIREMEN
 | Messaging | Order-scoped only | Supports project context and teen safety; avoids open DM scope |
 | Discovery | Relevance + availability + freshness + exposure boost | Matches product promise and avoids follower-count dominance |
 | Realtime | Deferred, limited to messages/notifications | Not required to validate the core UX |
+| Drawing | In-browser canvas, JPEG export into demo store | Artists must be able to make work on Arya; localStorage cannot hold raw PSD/PNG layers |
+| Canvas vs upload | Canvas is primary; upload remains | Supports teens drawing here without blocking artists who already work in Procreate |
 
 ## 13. Implementation risks
 
@@ -406,3 +419,5 @@ Implement Phase 0 from docs/IMPLEMENTATION_PLAN.md. Read docs/PRODUCT_REQUIREMEN
 - **Client-side authorization:** UI conditions improve UX but cannot replace server and RLS checks.
 - **Teen-safety false confidence:** label protections as simulated and require specialist legal/safety review before launch.
 - **Artwork performance:** require dimensions, responsive image sizes, thumbnails, and upload limits.
+- **Canvas storage:** compress exported drawings; catch localStorage quota errors; do not persist undo stroke history.
+- **Canvas overreach:** do not add AI generation, layers, or animation in the MVP.

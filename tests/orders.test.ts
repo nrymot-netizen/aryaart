@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateCommissionEstimate, getNextOrderStatus, remainingRevisions } from "@/lib/domain/orders";
+import { calculateCommissionEstimate, getNextOrderStatus, getWorkspaceNextAction, remainingRevisions } from "@/lib/domain/orders";
 
 describe("commission pricing", () => {
   it("calculates base price, extra characters, and selected add-ons", () => {
@@ -19,4 +19,10 @@ describe("order transitions", () => {
 
 describe("revisions", () => {
   it("never displays a negative remaining revision count", () => expect(remainingRevisions(2, 4)).toBe(0));
+});
+
+describe("workspace next action", () => {
+  it("asks the artist to draw the next delivery while work is in progress", () => {
+    expect(getWorkspaceNextAction("in-progress", "artist")?.title).toBe("Draw the next delivery");
+  });
 });

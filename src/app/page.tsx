@@ -2,6 +2,7 @@ import { artists, artworks } from "@/data/mock-data";
 import { ArtworkCard } from "@/components/artwork-card";
 import { SearchFilters } from "@/features/discovery/search-filters";
 import { ArtistRail, DiscoverHero, DiscoverSomeoneNew, FilteredDiscoverResults, StylePills } from "@/features/discovery/discover-sections";
+import { DemoCreatedFeed } from "@/features/discovery/demo-created-feed";
 import { searchCatalog } from "@/lib/dal/catalog";
 import { artistsAcceptingCommissions, artUnderBudget, discoverSomeoneNew, emergingArtists, hasActiveFilters, newArtwork, parseDiscoverySearchParams, rankDiscoveryCandidates, trendingStyles } from "@/lib/domain/discovery";
 
@@ -14,6 +15,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   return (
     <div>
       <DiscoverHero><SearchFilters filters={filters} /></DiscoverHero>
+      <DemoCreatedFeed filters={filteredMode ? filters : undefined} />
       {filteredMode ? (
         <FilteredDiscoverResults artworks={filtered} artists={artists} filters={filters} />
       ) : (

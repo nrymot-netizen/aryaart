@@ -47,7 +47,7 @@ export default function StudioPage() {
           <h2 className="font-bold">Demo shortcuts</h2>
           <p className="mt-2 text-sm text-black/50">Jump reviewers into a live Luna request without editing state by hand.</p>
           <Button className="mt-4 w-full" onClick={() => dispatch({ type: "load-scenario", scenario: "luna-incoming" })}>Load Luna incoming request</Button>
-          <Link href="/create" className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-mist text-sm font-bold text-plum">Create artwork or a service</Link>
+          <Link href="/create/draw" className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-mist text-sm font-bold text-plum">Open the drawing studio</Link>
         </section>
         <section className="rounded-4xl bg-white p-5 lg:col-span-2">
           <h2 className="font-bold">Incoming requests</h2>
@@ -55,10 +55,25 @@ export default function StudioPage() {
             {incoming.length === 0 && <p className="py-6 text-sm text-black/45">No incoming requests. Load the Luna scenario or wait for a buyer.</p>}
             {incoming.map((order) => <Link key={order.id} href={`/orders/${order.id}`} className="block py-4"><p className="font-bold">{getService(order.serviceId)?.title}</p><p className="text-sm text-black/50">{orderStatusLabel[order.status]} · ${order.estimatedPrice}</p></Link>)}
           </div>
+          <h2 className="mt-6 font-bold">Drawn in this demo</h2>
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {created.length === 0 && <p className="col-span-full py-6 text-sm text-black/45">Open the studio and publish a piece.</p>}
+            {created.map((artwork) => <Link key={artwork.id} href={`/art/${artwork.id}`} className="overflow-hidden rounded-2xl bg-mist"><img src={artwork.image} alt={artwork.title} className="aspect-[4/5] w-full object-cover" /></Link>)}
+          </div>
           <h2 className="mt-6 font-bold">Active projects</h2>
           <div className="mt-3 divide-y divide-black/[0.07]">
             {active.length === 0 && <p className="py-6 text-sm text-black/45">No active projects yet.</p>}
-            {active.map((order) => <Link key={order.id} href={`/orders/${order.id}`} className="block py-4"><p className="font-bold">{getService(order.serviceId)?.title}</p><p className="text-sm text-black/50">{orderStatusLabel[order.status]} · ${order.price}</p></Link>)}
+            {active.map((order) => (
+              <div key={order.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+                <Link href={`/orders/${order.id}`} className="min-w-0">
+                  <p className="font-bold">{getService(order.serviceId)?.title}</p>
+                  <p className="text-sm text-black/50">{orderStatusLabel[order.status]} · ${order.price}</p>
+                </Link>
+                {order.status === "in-progress" && (
+                  <Link href={`/orders/${order.id}/draw?kind=sketch`} className="rounded-full bg-plum px-4 py-2 text-sm font-bold text-white">Draw</Link>
+                )}
+              </div>
+            ))}
           </div>
         </section>
       </div>

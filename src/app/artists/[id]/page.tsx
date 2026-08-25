@@ -13,6 +13,7 @@ import { WaitlistButton } from "@/features/waitlist/waitlist-button";
 import { artists, getArtist, getArtistArt, getArtistPosts, getArtistReviews, getArtistServices, getArtwork } from "@/data/mock-data";
 import type { ArtistProfileTab } from "@/types";
 import { formatDate } from "@/lib/utils";
+import { CreatedArtistWork } from "@/features/studio/created-artist-work";
 
 const tabs: { id: ArtistProfileTab; label: string }[] = [
   { id: "portfolio", label: "Portfolio" },
@@ -72,7 +73,12 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
       <TabNav items={tabs.map((tab) => ({ ...tab, href: `/artists/${artist.id}${tab.id === "portfolio" ? "" : `?tab=${tab.id}`}` }))} active={active} />
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_340px]">
         <div>
-          {active === "portfolio" && (portfolio.length ? <div className="columns-2 gap-4">{portfolio.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} />)}</div> : <EmptyState icon={ImageSquare} title="No public portfolio yet" description="This artist has not published portfolio work." />)}
+          {active === "portfolio" && (
+            <>
+              <CreatedArtistWork artistId={id} />
+              {portfolio.length ? <div className="columns-2 gap-4">{portfolio.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} />)}</div> : <EmptyState icon={ImageSquare} title="No public portfolio yet" description="This artist has not published portfolio work." />}
+            </>
+          )}
           {active === "posts" && <PostList artistId={id} />}
           {active === "commissions" && <ServiceList artistId={id} />}
           {active === "reviews" && <ReviewList artistId={id} />}

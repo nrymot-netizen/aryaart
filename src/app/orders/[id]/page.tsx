@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { getArtist, getService } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
+import { latestFileOfKind } from "@/lib/domain/canvas";
 import { getWorkspaceNextAction, orderStatusLabel, remainingRevisions } from "@/lib/domain/orders";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/form-field";
@@ -37,6 +38,8 @@ export default function OrderWorkspacePage() {
   const next = getWorkspaceNextAction(order.status, persona.role);
   const messages = state.messages.filter((item) => item.orderId === order.id);
   const files = [...order.references, ...state.files.filter((item) => item.orderId === order.id)];
+  const latestSketch = latestFileOfKind(files, "sketch");
+  const latestFinal = latestFileOfKind(files, "final");
   const milestones = state.milestones.filter((item) => item.orderId === order.id);
   const events = state.timeline.filter((item) => item.orderId === order.id);
   const protectedAccount = artist?.accountType === "protected-teen" || persona.accountType === "protected-teen";
@@ -54,7 +57,7 @@ export default function OrderWorkspacePage() {
   const upload = (kind: "sketch" | "final", fileList: FileList | null) => {
     const file = fileList?.[0];
     if (!file) return;
-    const demoFile: DemoFile = { id: `${kind}-${file.name}`, orderId: order.id, name: file.name, type: file.type, size: file.size, kind, preview: URL.createObjectURL(file), createdAt: new Date().toISOString() };
+    const demoFile: DemoFile = { id: `${kind}-${file.name}`, orderId: order.id, name: file.name, type: file.type, size: file.size, kind, preview: URL.createObjectURL(file), source: "upload", createdAt: new Date().toISOString() };
     dispatch({ type: "artist-deliver", orderId: order.id, action: kind === "sketch" ? "submit-sketch" : "submit-final", file: demoFile });
   };
 
@@ -89,12 +92,15 @@ export default function OrderWorkspacePage() {
       )}
       {isArtist && order.status === "in-progress" && (
         <div className="mt-5 flex flex-wrap gap-3">
-          <label className="inline-flex min-h-11 cursor-pointer items-center rounded-full bg-plum px-5 text-sm font-bold text-white">Upload sketch<input type="file" accept="image/*" className="sr-only" onChange={(event) => upload("sketch", event.target.files)} /></label>
+          <Link href={`/orders/${order.id}/draw?kind=sketch`} className="inline-flex min-h-11 items-center rounded-full bg-plum px-5 text-sm font-bold text-white">Draw sketch</Link>
+          <Link href={`/orders/${order.id}/draw?kind=final`} className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-bold text-white">Draw final</Link>
+          <label className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-black/10 bg-white px-5 text-sm font-bold">Upload sketch<input type="file" accept="image/*" className="sr-only" onChange={(event) => upload("sketch", event.target.files)} /></label>
           <label className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-black/10 bg-white px-5 text-sm font-bold">Upload final<input type="file" accept="image/*" className="sr-only" onChange={(event) => upload("final", event.target.files)} /></label>
         </div>
       )}
       {isBuyer && order.status === "sketch-review" && (
         <div className="mt-5 space-y-3 rounded-3xl bg-white p-5">
+          {latestSketch?.preview && <img src={latestSketch.preview} alt="Sketch submitted for review" className="w-full rounded-2xl" />}
           <p className="text-sm text-black/55">{remainingRevisions(order.revisionLimit, order.revisionsUsed)} revision{remainingRevisions(order.revisionLimit, order.revisionsUsed) === 1 ? "" : "s"} remaining</p>
           <Textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What should change?" />
           <div className="flex flex-wrap gap-2">
@@ -103,7 +109,12 @@ export default function OrderWorkspacePage() {
           </div>
         </div>
       )}
-      {isBuyer && order.status === "final-review" && <div className="mt-5"><Button onClick={() => dispatch({ type: "buyer-respond", orderId: order.id, action: "accept-delivery" })}>Accept final delivery</Button></div>}
+      {isBuyer && order.status === "final-review" && (
+        <div className="mt-5 space-y-3 rounded-3xl bg-white p-5">
+          {latestFinal?.preview && <img src={latestFinal.preview} alt="Final artwork for review" className="w-full rounded-2xl" />}
+          <Button onClick={() => dispatch({ type: "buyer-respond", orderId: order.id, action: "accept-delivery" })}>Accept final delivery</Button>
+        </div>
+      )}
       {isBuyer && order.status === "completed" && !order.review && (
         <form className="mt-5 space-y-3 rounded-3xl bg-white p-5" onSubmit={(event) => { event.preventDefault(); dispatch({ type: "submit-review", orderId: order.id, rating: review.rating, body: review.body, serviceTitle: service?.title ?? "Commission" }); }}>
           <p className="font-bold">Leave a review</p>
@@ -138,7 +149,7 @@ export default function OrderWorkspacePage() {
             </div>
           )}
           {tab === "Files" && (
-            <ul className="grid gap-3 sm:grid-cols-2">{files.length ? files.map((file) => <li key={file.id} className="rounded-3xl bg-white p-4 text-sm"><p className="font-bold">{file.kind}</p><p>{file.name}</p>{file.preview && <img src={file.preview} alt="" className="mt-3 w-full rounded-2xl" />}</li>) : <p className="text-sm text-black/50">No files yet.</p>}</ul>
+            <ul className="grid gap-3 sm:grid-cols-2">{files.length ? files.map((file) => <li key={file.id} className="rounded-3xl bg-white p-4 text-sm"><p className="font-bold">{file.kind}{file.source === "arya-canvas" ? " · drawn on Arya" : ""}</p><p>{file.name}</p>{file.preview && <img src={file.preview} alt="" className="mt-3 w-full rounded-2xl" />}</li>) : <p className="text-sm text-black/50">No files yet. The artist can draw a sketch here.</p>}</ul>
           )}
           {tab === "Timeline" && (
             <ol className="space-y-3">{events.map((item) => <li key={item.id} className="rounded-3xl bg-white p-4 text-sm"><p className="font-bold">{item.eventType}</p><p className="text-black/60">{item.detail}</p></li>)}</ol>

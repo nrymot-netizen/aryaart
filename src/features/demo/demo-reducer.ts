@@ -237,10 +237,10 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       let next = { ...replaceOrder(state, updated), files: [...state.files, file] };
       if (command.action === "submit-sketch") {
         next = setMilestones(systemMessage(timeline(next, ctx, current.id, "submit-sketch", "Sketch submitted"), ctx, current.id, "A sketch was submitted for review."), current.id, 4, 4);
-        return { state: notify(next, ctx, [{ profileId: current.buyerId, title: "Sketch submitted", detail: "Review the sketch and approve or request a revision.", href: `/orders/${current.id}`, type: "sketch-submitted" }]), toast: "Sketch sent." };
+        return { state: notify(track(next, ctx, "sketch_submitted", { source: file.source === "arya-canvas" ? "canvas" : "upload" }), ctx, [{ profileId: current.buyerId, title: "Sketch submitted", detail: "Review the sketch and approve or request a revision.", href: `/orders/${current.id}`, type: "sketch-submitted" }]), toast: "Sketch sent.", href: `/orders/${current.id}` };
       }
       next = setMilestones(systemMessage(timeline(next, ctx, current.id, "submit-final", "Final submitted"), ctx, current.id, "Final artwork was delivered."), current.id, 8, 7);
-      return { state: notify(next, ctx, [{ profileId: current.buyerId, title: "Final delivered", detail: "Accept the delivery to complete the order.", href: `/orders/${current.id}`, type: "final-delivered" }]), toast: "Final delivered." };
+      return { state: notify(track(next, ctx, "final_delivered", { source: file.source === "arya-canvas" ? "canvas" : "upload" }), ctx, [{ profileId: current.buyerId, title: "Final delivered", detail: "Accept the delivery to complete the order.", href: `/orders/${current.id}`, type: "final-delivered" }]), toast: "Final delivered.", href: `/orders/${current.id}` };
     }
     case "send-message": {
       const current = state.orders.find((item) => item.id === command.orderId);
@@ -270,7 +270,7 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       };
     }
     case "create-artwork":
-      return { state: { ...state, createdArtworks: [command.artwork, ...state.createdArtworks], createdPosts: command.post ? [command.post, ...state.createdPosts] : state.createdPosts }, toast: "Artwork published.", href: `/art/${command.artwork.id}` };
+      return { state: track({ ...state, createdArtworks: [command.artwork, ...state.createdArtworks], createdPosts: command.post ? [command.post, ...state.createdPosts] : state.createdPosts }, ctx, "artwork_published", { source: command.artwork.tools.includes("Arya Canvas") ? "canvas" : "upload" }), toast: "Artwork published.", href: `/art/${command.artwork.id}` };
     case "create-service":
       return { state: { ...state, createdServices: [command.service, ...state.createdServices] }, toast: "Service published.", href: `/commissions/${command.service.id}` };
     case "update-availability":

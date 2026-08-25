@@ -163,6 +163,7 @@ export interface DemoFile {
   size: number;
   kind: "reference" | "sketch" | "final";
   preview?: string;
+  source?: "arya-canvas" | "upload";
   createdAt: string;
 }
 

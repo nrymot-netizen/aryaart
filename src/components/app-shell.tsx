@@ -18,10 +18,11 @@ const nav = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { unreadCount } = useDemo();
+  const drawingMode = pathname.startsWith("/create/draw") || pathname.includes("/draw");
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-black/5 bg-paper/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1480px] items-center justify-between px-4 sm:px-6 lg:px-10">
+      <header className={`sticky top-0 z-40 border-b border-black/5 bg-paper/90 backdrop-blur-xl ${drawingMode ? "h-12" : ""}`}>
+        <div className={`mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-10 ${drawingMode ? "h-12" : "h-16"} max-w-[1480px]`}>
           <Logo />
           <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
             {nav.map((item) => {
@@ -36,7 +37,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="min-h-[calc(100vh-4rem)] pb-24 md:pb-10">{children}</main>
+      <main className={`min-h-[calc(100vh-4rem)] ${drawingMode ? "pb-4" : "pb-24 md:pb-10"}`}>{children}</main>
+      {!drawingMode && (
       <nav className="fixed inset-x-0 bottom-0 z-50 flex h-[74px] items-start justify-around border-t border-black/10 bg-paper/95 px-2 pt-2 backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
         {nav.map((item) => {
           const Icon = item.icon;
@@ -44,6 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           return <Link key={item.href} href={item.href} className={`flex min-w-14 flex-col items-center gap-1 rounded-xl px-2 py-1 text-[11px] font-semibold ${active ? "text-plum" : "text-black/45"}`}><Icon size={23} weight={active ? "fill" : "regular"} />{item.label}</Link>;
         })}
       </nav>
+      )}
     </>
   );
 }

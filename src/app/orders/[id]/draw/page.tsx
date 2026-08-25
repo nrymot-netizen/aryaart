@@ -1,0 +1,87 @@
+"use client";
+
+import { Suspense, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams, useSearchParams } from "next/navigation";
+import { getArtist, getService } from "@/data/mock-data";
+import { DrawingStudio } from "@/features/canvas/drawing-studio";
+import { useDemo } from "@/features/demo/demo-provider";
+import { drawingToDemoFile } from "@/lib/domain/canvas";
+import { Button } from "@/components/ui/button";
+
+export default function OrderDrawPage() {
+  return <Suspense fallback={<div className="px-4 py-16 text-sm text-black/50">Loading the canvas…</div>}><OrderDrawForm /></Suspense>;
+}
+
+function OrderDrawForm() {
+  const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const { state, persona, dispatch } = useDemo();
+  const order = state.orders.find((item) => item.id === params.id);
+  const kind = searchParams.get("kind") === "final" ? "final" : "sketch";
+  const [error, setError] = useState<string | null>(null);
+
+  const artist = order ? getArtist(order.artistId) : undefined;
+  const service = order ? getService(order.serviceId) : undefined;
+  const isArtist = Boolean(order && persona.role === "artist" && persona.artistId === order.artistId);
+  const files = order ? state.files.filter((item) => item.orderId === order.id) : [];
+  const previousSketch = files.filter((item) => item.kind === "sketch" && item.preview).at(-1)?.preview;
+  const ghostImage = kind === "sketch" ? previousSketch : undefined;
+  const initialImage = kind === "final" ? previousSketch : undefined;
+  const title = useMemo(() => (kind === "final" ? "Final" : "Sketch"), [kind]);
+
+  if (!order) {
+    return <div className="mx-auto max-w-3xl px-4 py-24 text-center"><h1 className="text-2xl font-bold">Order not found</h1><Link href="/orders" className="mt-4 inline-block font-bold text-plum">Back to orders</Link></div>;
+  }
+
+  if (!isArtist) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-24 text-center">
+        <h1 className="text-2xl font-bold">Switch to the artist on this order</h1>
+        <p className="mt-2 text-black/50">Only @{artist?.username} can draw the {kind} for this commission.</p>
+        <Link href={`/orders/${order.id}`} className="mt-4 inline-block font-bold text-plum">Back to workspace</Link>
+      </div>
+    );
+  }
+
+  if (order.status !== "in-progress") {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-24 text-center">
+        <h1 className="text-2xl font-bold">This order isn’t ready for a {kind}</h1>
+        <p className="mt-2 text-black/50">Drawing opens when the commission is in progress.</p>
+        <Link href={`/orders/${order.id}`} className="mt-4 inline-block font-bold text-plum">Back to workspace</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-3 py-4 sm:px-5">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <Link href={`/orders/${order.id}`} className="text-sm font-bold text-plum">← {service?.title ?? "Workspace"}</Link>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-4xl">{title} desk</h1>
+        </div>
+        <Button variant="ghost" onClick={() => history.back()}>Cancel</Button>
+      </div>
+      <DrawingStudio
+        actionLabel={kind === "final" ? "Submit final" : "Submit sketch"}
+        ghostImage={ghostImage}
+        initialImage={initialImage}
+        references={order.references.map((file) => ({ id: file.id, name: file.name, preview: file.preview }))}
+        sidebarExtra={(
+          <section className="space-y-2">
+            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">Brief</h2>
+            <p className="text-sm leading-6 text-black/70">{order.brief}</p>
+            <p className="text-xs text-black/45">Due {order.deadline} · {order.intendedUse} · ${order.price}</p>
+            {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
+          </section>
+        )}
+        onExport={(drawing) => {
+          const file = drawingToDemoFile(drawing, kind, `${kind}.jpg`, new Date().toISOString());
+          const result = dispatch({ type: "artist-deliver", orderId: order.id, action: kind === "final" ? "submit-final" : "submit-sketch", file });
+          if (result.error) setError(result.error);
+        }}
+      />
+    </div>
+  );
+}

@@ -79,7 +79,7 @@ export function getWorkspaceNextAction(status: OrderStatus, role: PersonaRole): 
       artist: { title: "Waiting for simulated payment", detail: "The workspace opens after checkout." },
     },
     "in-progress": {
-      artist: { title: "Submit a sketch or keep painting", detail: "Upload a sketch for approval, or a final if the sketch already passed." },
+      artist: { title: "Draw the next delivery", detail: "Open the canvas to paint a sketch for approval, or a final if the sketch already passed. You can still upload a file." },
       buyer: { title: "Work is in progress", detail: "You’ll review the sketch when it’s ready." },
     },
     "sketch-review": {

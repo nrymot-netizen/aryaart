@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ArtworkMedia } from "./artwork-media";
 import Link from "next/link";
 import { Heart } from "@phosphor-icons/react";
 import type { Artwork, Artist } from "@/types";
@@ -12,7 +12,7 @@ export function ArtworkCard({ artwork, artist, priority = false }: { artwork: Ar
     <article className="group break-inside-avoid pb-5">
       <div className="relative overflow-hidden rounded-[1.4rem] bg-mist shadow-sm">
         <Link href={`/art/${artwork.id}`} className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum">
-          <Image src={artwork.image} alt={artwork.title} width={700} height={860} priority={priority} className="h-auto w-full transition duration-500 group-hover:scale-[1.025] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+          <ArtworkMedia src={artwork.image} alt={artwork.title} width={700} height={860} priority={priority} className="h-auto w-full transition duration-500 group-hover:scale-[1.025] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
         </Link>
         {artwork.isNew && <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold backdrop-blur">New</span>}
         <SaveArtworkButton artworkId={artwork.id} title={artwork.title} className="absolute right-3 top-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100" />

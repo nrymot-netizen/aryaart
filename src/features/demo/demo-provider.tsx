@@ -34,8 +34,14 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(demoStateKey, JSON.stringify(state));
-    window.localStorage.setItem(legacyPersonaKey, state.personaId);
+    try {
+      window.localStorage.setItem(demoStateKey, JSON.stringify(state));
+      window.localStorage.setItem(legacyPersonaKey, state.personaId);
+    } catch {
+      setToast("This browser couldn’t save the latest drawing. The demo store is full — reset the demo or publish a simpler piece.");
+      if (toastTimer.current) window.clearTimeout(toastTimer.current);
+      toastTimer.current = window.setTimeout(() => setToast(null), 3200);
+    }
   }, [hydrated, state]);
 
   const showToast = (message?: string) => {

@@ -1,23 +1,23 @@
 # Arya Art Product Requirements Document
 
 **Status:** Build-ready MVP specification  
-**Version:** 1.0  
+**Version:** 1.1  
 **Updated:** August 17, 2026  
-**Product type:** Responsive web art discovery and commission marketplace demo
+**Product type:** Responsive web art discovery, in-app drawing, and commission marketplace demo
 
 ## 1. Product summary
 
-Arya Art helps people discover independent artists by the work they create, understand exactly what those artists offer, and complete a custom-art commission inside a structured, safer workspace.
+Arya Art helps people discover independent artists by the work they create, draw and publish on the platform, understand exactly what those artists offer, and complete a custom-art commission inside a structured, safer workspace.
 
 The MVP must prove one complete transaction loop:
 
-> Discover artwork → evaluate an artist → request a service → artist responds → simulated checkout → collaborate through milestones → approve delivery → review.
+> Discover artwork → evaluate an artist → request a service → artist responds → simulated checkout → draw and approve through milestones → approve delivery → review.
 
 It must also prove the matching artist loop:
 
-> Publish work → configure a service and availability → evaluate a request → manage the project → deliver artwork → receive simulated earnings.
+> Draw and publish work → configure a service and availability → evaluate a request → manage the project → draw the sketch and final in-app → receive simulated earnings.
 
-Arya is not an unrestricted social network or a production payments platform. Discovery, structured commerce, and project collaboration are the core.
+Artists (and buyers adding a visual brief) create on Arya with a touch-friendly canvas. File upload remains available for work made in other tools. Arya is not an unrestricted social network, a production payments platform, or a generative-AI studio. Discovery, in-app making, structured commerce, and project collaboration are the core.
 
 ## 2. Problem
 
@@ -51,8 +51,9 @@ Artists face the inverse problems: low discoverability, repetitive qualification
 ### 4.2 Independent artist
 
 - Teen or adult artist who accepts custom work.
-- Needs discovery, clear request intake, workload control, and a professional delivery workflow.
+- Needs a place to actually draw, plus discovery, clear request intake, workload control, and a professional delivery workflow.
 - May offer multiple services with different prices and rules.
+- May create finished pieces or commission deliverables in Arya, or import files from another app.
 
 ### 4.3 Supporting parent (simulated in MVP)
 
@@ -70,6 +71,8 @@ Artists face the inverse problems: low discoverability, repetitive qualification
 ### MVP goals
 
 - Demonstrate compelling artwork-first discovery.
+- Let an artist draw a piece on Arya and publish it without leaving the product.
+- Let an artist draw a commission sketch and final in the order workspace.
 - Make an artist's commission readiness understandable in under 30 seconds.
 - Complete the primary buyer and artist journeys without dead ends.
 - Demonstrate structured communication and milestone approvals.
@@ -85,7 +88,8 @@ Artists face the inverse problems: low discoverability, repetitive qualification
 - Open DMs, group chat, voice, or video.
 - Physical shipping and tax handling.
 - Native apps, school accounts, cryptocurrency, or NFTs.
-- AI image generation.
+- AI image generation, AI inpainting, or text-to-image inside the canvas.
+- Unlimited Procreate/Photoshop parity (animation, CMYK, PSD round-trip, 50+ layers). The studio is a serious drawing desk with layers and real brushes, not a desktop illustration suite.
 
 ## 6. Success metrics
 
@@ -98,11 +102,12 @@ For moderated MVP testing with at least 5 buyers and 5 artists:
 | Buyer submits a valid commission request | ≥ 70% |
 | Tester completes the full simulated order | ≥ 70% |
 | Artist correctly accepts or counters a request | ≥ 80% |
+| Artist can draw and submit a sketch without uploading a file | ≥ 80% |
 | Buyer understands current milestone and next action | ≥ 85% |
 | Teen protection state is noticed without being perceived as childish | ≥ 70% favorable |
 | Median critical task completion time | ≤ 6 minutes for request; ≤ 10 minutes end-to-end demo |
 
-Instrumentation events should include `artwork_viewed`, `artist_profile_viewed`, `service_selected`, `request_started`, `request_submitted`, `artist_response_submitted`, `checkout_completed`, `milestone_action`, `delivery_accepted`, `review_submitted`, `waitlist_joined`, and `safety_message_blocked`.
+Instrumentation events should include `artwork_viewed`, `artist_profile_viewed`, `service_selected`, `request_started`, `request_submitted`, `artist_response_submitted`, `checkout_completed`, `milestone_action`, `canvas_opened`, `artwork_published`, `sketch_submitted`, `final_delivered`, `delivery_accepted`, `review_submitted`, `waitlist_joined`, and `safety_message_blocked`. Canvas events should record whether the source was `canvas` or `upload`.
 
 ## 7. Information architecture
 
@@ -110,7 +115,7 @@ Instrumentation events should include `artwork_viewed`, `artist_profile_viewed`,
 
 1. **Discover** — artwork, artists, search, filters, saved content.
 2. **Commissions** — services and active commission opportunities.
-3. **Create** — posts, portfolio work, and commission-service creation.
+3. **Create** — in-app drawing studio, posts, portfolio work, and commission-service creation.
 4. **Orders** — buyer requests, active orders, and history.
 5. **Studio / Profile** — artist dashboard, availability, services, earnings, and public profile.
 
@@ -130,8 +135,10 @@ Instrumentation events should include `artwork_viewed`, `artist_profile_viewed`,
 | `/orders` | Buyer request/order dashboard | Existing shell; build |
 | `/orders/[id]` | Commission workspace | Build |
 | `/create` | Create menu | Existing shell; build |
-| `/create/artwork` | Artwork post form | Build |
+| `/create/draw` | In-app drawing studio and publish | Build |
+| `/create/artwork` | Redirects to drawing studio | Build |
 | `/create/service` | Service creation form | Build |
+| `/orders/[id]/draw` | Draw a sketch or final for an order | Build |
 | `/studio` | Artist dashboard | Existing shell; build |
 | `/studio/services` | Service and availability management | Build |
 | `/saved` | Saved artwork and artists | Build |
@@ -204,7 +211,7 @@ The request is a resumable wizard:
 1. Brief and service confirmation.
 2. Options: character count, background, intended use, add-ons.
 3. Deadline and budget.
-4. Reference uploads.
+4. References: file uploads and an optional in-app reference sketch.
 5. Notes, rules acknowledgment, and review.
 
 The price estimate updates from base price plus add-ons. The estimate is not a charge and may be countered by the artist.
@@ -214,6 +221,7 @@ The price estimate updates from base price plus add-ons. The estimate is not a c
 - Required fields prevent incomplete submission.
 - Commercial use affects price when configured.
 - References display file name, type, size, progress, and remove action.
+- Buyer can draw a reference sketch in-app instead of, or in addition to, uploading a file.
 - Draft request persists locally during the demo.
 - Protected teen financial actions trigger a simulated parent-approval checkpoint.
 - Submission creates an `Awaiting artist` request and notification.
@@ -268,7 +276,9 @@ Messages are available only to the buyer and artist attached to that order. Syst
 **Acceptance criteria**
 
 - The next required action is always visible above the fold.
-- Artist can upload a sketch and final delivery.
+- Artist can draw a sketch and a final on Arya as the primary delivery path.
+- Artist can still upload a sketch or final made in another tool.
+- Drawn deliverables appear in Files with a preview the buyer can review.
 - Buyer can approve sketch or request revision with required feedback.
 - Remaining revisions are visible before submitting feedback.
 - Revision count cannot fall below zero without a simulated change order.
@@ -287,6 +297,7 @@ Messages are available only to the buyer and artist attached to that order. Syst
 
 Create types:
 
+- Draw on Arya (primary)
 - Finished artwork
 - Sketch / WIP
 - Process
@@ -294,18 +305,66 @@ Create types:
 - Commission example
 - New commission service
 
-Artwork fields include image, title, description, style, subject, tools, tags, AI-use disclosure, portfolio visibility, and “Offer commissions like this.” That action pre-fills a new service with the artwork as an example.
+Drawing is the default way to add a new piece. Artwork fields include the canvas (or an uploaded image), title, description, style, subject, tools, tags, AI-use disclosure, portfolio visibility, and “Offer commissions like this.” Work drawn in Arya records the tool as **Arya Canvas**. “Offer commissions like this” pre-fills a new service with the artwork as an example.
 
-Studio includes service management, availability, incoming requests, active projects, portfolio/posts, review summary, and simulated pending/available earnings.
+Studio includes a canvas shortcut, service management, availability, incoming requests, active projects, portfolio/posts, review summary, and simulated pending/available earnings.
 
-### 8.9 Reviews
+Published canvas pieces must appear in the demo Discover feed and the artist’s portfolio without requiring a backend. Seeded catalog art remains the default public library.
+
+### 8.9 Drawing studio
+
+Arya includes an in-browser drawing studio so a teen or adult artist can make work on the platform. This is a first-class product surface, not a decoration on an upload form.
+
+**Where it appears**
+
+1. **Create → Draw on Arya** — draw a piece, add listing details, publish to the demo portfolio.
+2. **Commission workspace** — draw the sketch and the final for that order. Delivery stays inside the project.
+3. **Request references** — a buyer may sketch a rough visual brief. That drawing is private to the request/order.
+
+**Required tools**
+
+- Pencil, ink, marker, and airbrush, plus eraser, fill, and color sampling. Pressure-aware when the pointer reports pressure.
+- Brush size, opacity, hardness, and stroke stabilizer.
+- Up to 8 layers with visibility, lock, opacity, and reorder.
+- Vertical symmetry for character work.
+- Zoom from 50% to 400%, reset, and trackpad/ctrl-wheel zoom.
+- Color presets, recent colors, custom color, and paper colors.
+- Undo, redo, and clear.
+- Commission drawing desk shows the brief and reference images beside the canvas.
+- Keyboard shortcuts: `1–4` brushes, `E` eraser, `G` fill, `I` sample, `M` symmetry, `[` `]` size, `+` `-` zoom, `⌘Z` undo.
+- Export composites visible layers to a compressed JPEG for the demo store. Empty canvases cannot be published or delivered.
+
+**Interaction and access**
+
+- Pointer drawing must work with mouse, touch, and pen. The canvas uses `touch-action: none` so drawing does not scroll the page.
+- Mobile layout at 360px must keep tools reachable and the canvas usable; dedicated draw routes hide the bottom navigation.
+- Primary actions stay keyboard-accessible; the canvas has an accessible name.
+- Motion on surrounding chrome respects `prefers-reduced-motion`. Drawing strokes themselves are the user’s input, not decorative animation.
+- No generative fill, prompt box, or “AI complete this sketch” control.
+
+**Privacy**
+
+- Published Create drawings are public in the demo, like other portfolio work.
+- Commission sketches, finals, and buyer reference sketches are participant-only, same as uploaded project files.
+
+**Acceptance criteria**
+
+- An artist persona can open Create, draw a visible mark, title it, and publish. The piece appears in Discover’s “Drawn on Arya” section and on `/art/[id]`.
+- From an in-progress order, the artist can draw a sketch, submit it, and the buyer can see the preview without an external file.
+- After sketch approval, the artist can draw and submit a final the same way.
+- Upload remains available and labeled as the alternative path.
+- A buyer can add a drawn reference on the request wizard References step.
+- Switching personas does not lose the published drawing or delivered file in the shared demo store.
+- The studio does not offer AI image generation.
+
+### 8.10 Reviews
 
 - Only completed-order buyers can submit one review.
 - Rating is 1–5 plus optional text.
 - Review links to a generic service title but does not expose private project files or messages.
 - Demo moderation includes report and hide controls but no production review system.
 
-### 8.10 Notifications
+### 8.11 Notifications
 
 Notification types include request received, accepted, countered, declined, payment required, message received, sketch submitted, revision requested, final delivered, review requested, waitlist movement, slot opened, and parent approval required/completed.
 
@@ -325,7 +384,7 @@ Protected teen behavior:
 - Provide report, block, and leave/cancel affordances near communication.
 - Simulate parent approval for accepting commercial terms, checkout, and payout-sensitive actions.
 - Default safety protections cannot be disabled by a teen account in the MVP.
-- Keep uploaded references private to project participants.
+- Keep uploaded references, buyer reference sketches, commission sketches, and finals private to project participants.
 
 The FTC states that COPPA focuses on children under 13 and can be triggered when an operator has actual knowledge of an under-13 user; the FTC also warns that merely intending to run a teen service does not eliminate risk if the service attracts younger children. Arya therefore needs a clear 13+ gate, minimal age data, privacy disclosures, and counsel review before production. Discord’s current safety-by-default model also supports using age-group states, restricted settings, message-request protections, and safety alerts rather than relying only on user education.
 
@@ -396,6 +455,8 @@ These do not block the demo but must be resolved before production planning:
 7. Moderation policy for adult content, fan art, copyrighted characters, and AI-assisted work.
 8. Whether physical commissions ever enter scope.
 9. Ranking transparency and creator controls.
+10. Whether the canvas later adds layers, animation, or file round-trip with Procreate/Photoshop.
+11. Maximum canvas resolution and storage strategy once drawings leave local demo persistence.
 
 ## 15. Sources
 
