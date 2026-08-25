@@ -25,6 +25,6 @@ Read in this order before writing code. Do not assume a blank product; the mock 
 
 ## Next build
 
-Do not reopen Phases 0–6 unless fixing a regression.
+Do not reopen Phases 0–10 unless fixing a regression.
 
-**Phase 9 — Human-only challenges:** one seeded brief, Arya-canvas entries only, ranked by saves.
+**Stop for UX validation.** Do not start real auth, Supabase, or payments unless product asks. Provenance certificates and Playwright e2e remain later.

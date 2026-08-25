@@ -1,8 +1,10 @@
-import type { AccountType, AnalyticsEvent, Artwork, Availability, CommissionOrder, CommissionService, DemoFile, LedgerEntry, Milestone, Notification, OrderBlock, OrderMessage, OrderReport, ParentApproval, PersonaRole, Post, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
+import type { AccountType, AnalyticsEvent, Artwork, Availability, ChallengeEntry, CommissionOrder, CommissionService, DemoFile, DrawingDraft, LedgerEntry, Milestone, Notification, OrderBlock, OrderMessage, OrderReport, ParentApproval, PersonaRole, Post, ProcessStory, ProcessStoryConsent, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
 import { seedDemoNotifications, seedLedger, seedMessages, seedMilestones, seedOrders, seedTimeline } from "@/data/seed-orders";
 import { seedWaitlists } from "@/data/mock-data";
 import { defaultDemoPersona } from "@/features/demo/demo-personas";
 import { seedLanternArtwork, seedLanternLog, seedLanternPost } from "@/data/seed-lantern";
+import { seedChallengeEntries, seedPaperLanternArtwork, seedPaperLanternLog, seedPaperLanternPost } from "@/data/seed-challenges";
+import { seedLunaFinalFile, seedLunaFinalLog, seedLunaSketchFile } from "@/data/seed-process-story";
 import type { ProcessLog } from "@/lib/domain/process-log";
 
 export const DEMO_STATE_VERSION = 2;
@@ -35,6 +37,10 @@ export interface DemoPersistedState {
   hiddenReviewIds: string[];
   reportedReviewIds: string[];
   processLogs: ProcessLog[];
+  challengeEntries: ChallengeEntry[];
+  processStoryConsents: ProcessStoryConsent[];
+  processStories: ProcessStory[];
+  drawingDrafts: DrawingDraft[];
 }
 
 export function createDemoState(personaId = defaultDemoPersona.id): DemoPersistedState {
@@ -47,14 +53,18 @@ export function createDemoState(personaId = defaultDemoPersona.id): DemoPersiste
     drafts: [],
     orders: seedOrders.map((order) => ({ ...order, references: order.references.map((file) => ({ ...file })) })),
     messages: seedMessages.map((message) => ({ ...message })),
-    files: [{ id: "file-sketch-flight", orderId: "order-first-flight", name: "first-flight-sketch.svg", type: "image/svg+xml", size: 18000, kind: "sketch", preview: "/art/first-flight.svg", createdAt: "2026-08-16T15:00:00Z" }],
+    files: [
+      { id: "file-sketch-flight", orderId: "order-first-flight", name: "first-flight-sketch.svg", type: "image/svg+xml", size: 18000, kind: "sketch", preview: "/art/first-flight.svg", createdAt: "2026-08-16T15:00:00Z" },
+      { ...seedLunaSketchFile },
+      { ...seedLunaFinalFile },
+    ],
     milestones: seedMilestones.map((item) => ({ ...item })),
     timeline: seedTimeline.map((item) => ({ ...item })),
     notifications: seedDemoNotifications.map((item) => ({ ...item })),
     ledger: seedLedger.map((item) => ({ ...item })),
     parentApprovals: [],
-    createdArtworks: [{ ...seedLanternArtwork }],
-    createdPosts: [{ ...seedLanternPost }],
+    createdArtworks: [{ ...seedLanternArtwork }, { ...seedPaperLanternArtwork }],
+    createdPosts: [{ ...seedLanternPost }, { ...seedPaperLanternPost }],
     createdServices: [],
     createdReviews: [],
     artistAvailability: {},
@@ -63,7 +73,15 @@ export function createDemoState(personaId = defaultDemoPersona.id): DemoPersiste
     orderBlocks: [],
     hiddenReviewIds: [],
     reportedReviewIds: [],
-    processLogs: [{ ...seedLanternLog, ops: seedLanternLog.ops.map((op) => ({ ...op })) }],
+    processLogs: [
+      { ...seedLanternLog, ops: seedLanternLog.ops.map((op) => ({ ...op })) },
+      { ...seedPaperLanternLog, ops: seedPaperLanternLog.ops.map((op) => ({ ...op })) },
+      { ...seedLunaFinalLog, ops: seedLunaFinalLog.ops.map((op) => ({ ...op })) },
+    ],
+    challengeEntries: seedChallengeEntries.map((entry) => ({ ...entry })),
+    processStoryConsents: [],
+    processStories: [],
+    drawingDrafts: [],
   };
 }
 
@@ -72,7 +90,21 @@ export function toggleSavedId(ids: string[], id: string): string[] {
 }
 
 function withSeedItem<T extends { id: string }>(items: T[], seed: T): T[] {
-  return items.some((item) => item.id === seed.id) ? items : [seed, ...items];
+  return items.some((item) => item.id === seed.id) ? items : [...items, seed];
+}
+
+function withSeedItems<T extends { id: string }>(items: T[], seeds: T[]): T[] {
+  return seeds.reduce((next, seed) => withSeedItem(next, seed), items);
+}
+
+function cloneLog(log: ProcessLog): ProcessLog {
+  return { ...log, ops: log.ops.map((op) => ({ ...op })) };
+}
+
+function withSeedProcessLogs(logs: ProcessLog[]): ProcessLog[] {
+  const seeds = [cloneLog(seedLanternLog), cloneLog(seedPaperLanternLog), cloneLog(seedLunaFinalLog)];
+  const seedIds = new Set(seeds.map((item) => item.id));
+  return [...seeds, ...logs.filter((item) => !seedIds.has(item.id))];
 }
 
 export function parseDemoState(raw: string | null, legacyPersona?: string | null): DemoPersistedState {
@@ -92,14 +124,18 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       drafts: Array.isArray(parsed.drafts) ? parsed.drafts : [],
       orders: Array.isArray(parsed.orders) ? parsed.orders : fallback.orders,
       messages: Array.isArray(parsed.messages) ? parsed.messages : fallback.messages,
-      files: Array.isArray(parsed.files) ? parsed.files : fallback.files,
+      files: withSeedItems(Array.isArray(parsed.files) ? parsed.files : fallback.files, [
+        { id: "file-sketch-flight", orderId: "order-first-flight", name: "first-flight-sketch.svg", type: "image/svg+xml", size: 18000, kind: "sketch", preview: "/art/first-flight.svg", createdAt: "2026-08-16T15:00:00Z" },
+        { ...seedLunaSketchFile },
+        { ...seedLunaFinalFile },
+      ]),
       milestones: Array.isArray(parsed.milestones) ? parsed.milestones : fallback.milestones,
       timeline: Array.isArray(parsed.timeline) ? parsed.timeline : fallback.timeline,
       notifications: Array.isArray(parsed.notifications) ? parsed.notifications : fallback.notifications,
       ledger: Array.isArray(parsed.ledger) ? parsed.ledger : fallback.ledger,
       parentApprovals: Array.isArray(parsed.parentApprovals) ? parsed.parentApprovals : [],
-      createdArtworks: withSeedItem(Array.isArray(parsed.createdArtworks) ? parsed.createdArtworks : fallback.createdArtworks, { ...seedLanternArtwork }),
-      createdPosts: withSeedItem(Array.isArray(parsed.createdPosts) ? parsed.createdPosts : fallback.createdPosts, { ...seedLanternPost }),
+      createdArtworks: withSeedItems(Array.isArray(parsed.createdArtworks) ? parsed.createdArtworks : fallback.createdArtworks, [{ ...seedLanternArtwork }, { ...seedPaperLanternArtwork }]),
+      createdPosts: withSeedItems(Array.isArray(parsed.createdPosts) ? parsed.createdPosts : fallback.createdPosts, [{ ...seedLanternPost }, { ...seedPaperLanternPost }]),
       createdServices: Array.isArray(parsed.createdServices) ? parsed.createdServices : [],
       createdReviews: Array.isArray(parsed.createdReviews) ? parsed.createdReviews : [],
       artistAvailability: parsed.artistAvailability ?? {},
@@ -108,7 +144,11 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       orderBlocks: Array.isArray(parsed.orderBlocks) ? parsed.orderBlocks : [],
       hiddenReviewIds: Array.isArray(parsed.hiddenReviewIds) ? parsed.hiddenReviewIds : [],
       reportedReviewIds: Array.isArray(parsed.reportedReviewIds) ? parsed.reportedReviewIds : [],
-      processLogs: withSeedItem(Array.isArray(parsed.processLogs) ? parsed.processLogs : fallback.processLogs, { ...seedLanternLog, ops: seedLanternLog.ops.map((op) => ({ ...op })) }),
+      processLogs: withSeedProcessLogs(Array.isArray(parsed.processLogs) ? parsed.processLogs : fallback.processLogs),
+      challengeEntries: withSeedItems(Array.isArray(parsed.challengeEntries) ? parsed.challengeEntries : fallback.challengeEntries, seedChallengeEntries.map((entry) => ({ ...entry }))),
+      processStoryConsents: Array.isArray(parsed.processStoryConsents) ? parsed.processStoryConsents : [],
+      processStories: Array.isArray(parsed.processStories) ? parsed.processStories : [],
+      drawingDrafts: Array.isArray(parsed.drawingDrafts) ? parsed.drawingDrafts : [],
     };
   } catch {
     return fallback;

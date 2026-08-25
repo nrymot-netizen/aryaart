@@ -25,9 +25,16 @@ describe("demo persistence helpers", () => {
     older.createdArtworks = [];
     older.createdPosts = [];
     older.processLogs = [];
+    older.challengeEntries = [];
     const parsed = parseDemoState(JSON.stringify(older));
     expect(parsed.createdArtworks.some((item) => item.id === "lantern-study")).toBe(true);
+    expect(parsed.createdArtworks.some((item) => item.id === "paper-lantern")).toBe(true);
     expect(parsed.createdPosts.some((item) => item.id === "post-lantern-study")).toBe(true);
     expect(parsed.processLogs.some((item) => item.id === "plog-lantern-study")).toBe(true);
+    expect(parsed.challengeEntries.some((item) => item.id === "centry-lantern-study")).toBe(true);
+    expect(parsed.files.some((item) => item.id === "file-luna-first-sketch")).toBe(true);
+    expect(parsed.files.some((item) => item.id === "file-luna-first-final")).toBe(true);
+    expect(parsed.processLogs.some((item) => item.id === "plog-file-luna-first-final")).toBe(true);
+    expect(Array.isArray(parsed.processStories)).toBe(true);
   });
 });

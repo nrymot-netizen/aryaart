@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 900" width="720" height="900">
+  <rect width="720" height="900" fill="#f4e6d4"/>
+  <circle cx="118" cy="140" r="4" fill="#e0a51a"/>
+  <circle cx="602" cy="210" r="3" fill="#e0a51a"/>
+  <circle cx="88" cy="520" r="3" fill="#e07a5f"/>
+  <circle cx="640" cy="640" r="4" fill="#e0a51a"/>
+  <g fill="none" stroke="#c45c48" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="360,168 360,248"/>
+    <polyline points="288,268 360,248 432,268"/>
+    <polyline points="276,288 444,288 432,520 288,520 276,288"/>
+    <polyline points="300,360 420,360"/>
+    <polyline points="292,440 428,440"/>
+    <polyline points="318,520 318,612 402,612 402,520"/>
+  </g>
+  <ellipse cx="360" cy="400" rx="52" ry="70" fill="#f3c07a"/>
+  <polyline fill="none" stroke="#ee6b5e" stroke-width="8" stroke-linecap="round" points="360,430 356,390 360,360 364,400 360,428"/>
+</svg>

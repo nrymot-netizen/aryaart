@@ -16,6 +16,7 @@ import { ProtectedAccountNotice } from "@/components/safety/protected-account-no
 import { Dialog, DialogActions } from "@/components/ui/dialog";
 import { LicenseNotice } from "@/features/license/license-notice";
 import { ReplayPlayer } from "@/features/artwork/replay-player";
+import { ShareProcessCard } from "@/features/process/share-process-card";
 
 const tabs = ["Messages", "Files", "Timeline", "Details"] as const;
 
@@ -144,6 +145,7 @@ export default function OrderWorkspacePage() {
           <Button type="submit">Publish review</Button>
         </form>
       )}
+      <ShareProcessCard order={order} isArtist={isArtist} isBuyer={isBuyer} />
 
       <div className="mt-8 flex gap-4 border-b border-black/10">{tabs.map((item) => <button key={item} onClick={() => setTab(item)} className={`border-b-2 py-3 text-sm font-bold ${tab === item ? "border-ink" : "border-transparent text-black/40"}`}>{item}</button>)}</div>
       <div className="mt-6 lg:hidden" />

@@ -3,13 +3,13 @@
 **Audience:** Cursor/Codex implementers and product reviewers  
 **Companion:** [Docs index](./README.md) · [Current state](./CURRENT_STATE.md) · [Product Requirements](./PRODUCT_REQUIREMENTS.md) · [Drawing Identity PRD](./DRAWING_IDENTITY_PRD.md) · [Demo and QA](./DEMO_AND_QA.md) · [Safety](./SAFETY.md) · [Deploy](./DEPLOY.md)
 
-**Next phase to implement:** Phase 9 (human-only challenges). Phases 0–8 are shipped on the mock demo. Do not rebuild them.
+**Next phase to implement:** Stop for UX validation. Phases 0–10 are shipped on the mock demo. Do not start Phase 7 (Supabase) unless product asks. Do not rebuild shipped phases.
 
 ## 1. Delivery strategy
 
 Build a convincing vertical slice before broadening the marketplace. Keep mock-backed repository interfaces until the complete buyer/artist transaction works, then replace those adapters with Supabase. This preserves demo speed without embedding business logic in components.
 
-The vertical slice is already demonstrable locally and at https://aryaart.vercel.app. Remaining work extends it: honest license language, then replay/share/proof, then challenges, then backend.
+The vertical slice is already demonstrable locally and at https://aryaart.vercel.app. Remaining work is a real backend after UX validation, not more mock marketplace loops.
 
 ### Definition of done for every phase
 
@@ -327,7 +327,7 @@ Tasks:
 3. Add saved-artists/artwork page.
 4. Add loading, empty, error, and optimistic states.
 5. Run keyboard, reduced-motion, contrast, and mobile audits.
-6. Add analytics event adapter and demo event inspector.
+6. Add analytics event adapter and demo event inspector. **Shipped on the mock:** last events list on Notifications.
 7. Run complete regression test and stakeholder demo script.
 
 Exit criteria: all PRD requirements are demonstrable, polished, and regression-tested.
@@ -365,17 +365,17 @@ Tasks:
 
 Exit criteria: [Demo and QA](./DEMO_AND_QA.md) primary loop still works; license and identity A gates pass; no Appendix A language in UI.
 
-### Phase 9 — Human-only challenges
+### Phase 9 — Human-only challenges (shipped)
 
 **Outcome:** One seeded brief; Arya-canvas entries only; ranked by saves; Try this brief opens Create.
 
 See Drawing Identity PRD Loop 2. No follower ranking. No upload entries.
 
-### Phase 10 — Process stories
+### Phase 10 — Process stories (shipped)
 
 **Outcome:** After final acceptance, public sketch→final only if both parties opt in. Protected teen default private.
 
-See Identity PRD Loop 3.
+See Identity PRD Loop 3. Share process on completed orders. Discover + `/process/[id]`. No auto-post. Briefs stay off the public story.
 
 ## 9. Testing plan
 
@@ -426,7 +426,7 @@ Manual coverage for 1–10 lives in [Demo and QA](./DEMO_AND_QA.md). Automate 11
 
 ## 10. Cursor execution protocol
 
-Give Cursor **one phase at a time**, starting with Phase 9. For each phase:
+Give Cursor **one phase at a time**. Phases 0–10 are shipped. Next is Phase 7 only after UX validation and an explicit ask. For each phase:
 
 1. Read [docs/README.md](./README.md), [CURRENT_STATE.md](./CURRENT_STATE.md), this plan, and the relevant PRD section.
 2. Inspect the repository and state current behavior before editing.
@@ -442,15 +442,13 @@ Never print the private motivational model in UI. Never add generative fill, ope
 Suggested next Cursor instruction:
 
 ```text
-Implement Phase 9 from docs/IMPLEMENTATION_PLAN.md. Read docs/README.md, docs/CURRENT_STATE.md, and docs/DRAWING_IDENTITY_PRD.md Loop 2 (not Appendix A in the UI). Add one human-only challenge brief, Arya-canvas entries only, ranked by saves. Do not start Supabase or NFT work. Preserve the marketplace loop and Phase 8 replay/license. Run npm test, typecheck, and build. Verify in the browser. Report gaps.
+Do not start Phase 7 (Supabase) unless explicitly asked. Phases 0–10 are shipped on the mock demo. Preserve process stories (dual opt-in, no brief leak, no teen auto-post), challenges, replay/license, and the marketplace loop. If fixing a gap, keep mutations in the demo reducer. Run npm test, typecheck, and build. Verify in the browser.
 ```
 
 ## 11. Immediate backlog
 
 | Priority | Item | Size | Dependency |
 | --- | --- | --- | --- |
-| P0 | Challenge grid | L | Identity A |
-| P1 | Process story dual opt-in | M | Completed orders |
 | P2 | Playwright smoke | M | Stable routes |
 | P2 | Supabase migration | XL | UX validation |
 | P3 | Provenance certificate (not NFT UX) | XL | Counsel + 18+ |

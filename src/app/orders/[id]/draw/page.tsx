@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { getArtist, getService } from "@/data/mock-data";
-import { DrawingStudio } from "@/features/canvas/drawing-studio";
+import { DrawingStudio, type DrawingStudioHandle } from "@/features/canvas/drawing-studio";
 import { useDemo } from "@/features/demo/demo-provider";
 import { drawingToDemoFile } from "@/lib/domain/canvas";
+import { createDraftId, drawingDraftFor } from "@/lib/domain/drawing-drafts";
 import { Button } from "@/components/ui/button";
 import { LicenseNotice } from "@/features/license/license-notice";
 
@@ -17,10 +18,13 @@ export default function OrderDrawPage() {
 function OrderDrawForm() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
-  const { state, persona, dispatch } = useDemo();
+  const { state, persona, dispatch, hydrated } = useDemo();
+  const studioRef = useRef<DrawingStudioHandle>(null);
   const order = state.orders.find((item) => item.id === params.id);
   const kind = searchParams.get("kind") === "final" ? "final" : "sketch";
   const [error, setError] = useState<string | null>(null);
+  const draftId = order ? createDraftId("order", `${order.id}-${kind}`) : "draft-order-unknown";
+  const savedDraft = drawingDraftFor(state.drawingDrafts, draftId);
 
   const artist = order ? getArtist(order.artistId) : undefined;
   const service = order ? getService(order.serviceId) : undefined;
@@ -30,6 +34,10 @@ function OrderDrawForm() {
   const ghostImage = kind === "sketch" ? previousSketch : undefined;
   const initialImage = kind === "final" ? previousSketch : undefined;
   const title = useMemo(() => (kind === "final" ? "Final" : "Sketch"), [kind]);
+
+  if (!hydrated) {
+    return <div className="px-4 py-16 text-sm text-black/50">Loading the canvas…</div>;
+  }
 
   if (!order) {
     return <div className="mx-auto max-w-3xl px-4 py-24 text-center"><h1 className="text-2xl font-bold">Order not found</h1><Link href="/orders" className="mt-4 inline-block font-bold text-plum">Back to orders</Link></div>;
@@ -65,9 +73,13 @@ function OrderDrawForm() {
         <Button variant="ghost" onClick={() => history.back()}>Cancel</Button>
       </div>
       <DrawingStudio
+        ref={studioRef}
         actionLabel={kind === "final" ? "Submit final" : "Submit sketch"}
+        draftId={draftId}
         ghostImage={ghostImage}
-        initialImage={initialImage}
+        initialImage={savedDraft ? undefined : initialImage}
+        initialDraft={savedDraft}
+        onAutosave={(draft) => dispatch({ type: "save-drawing-draft", draft })}
         references={order.references.map((file) => ({ id: file.id, name: file.name, preview: file.preview }))}
         sidebarExtra={(
           <section className="space-y-2">
@@ -89,6 +101,7 @@ function OrderDrawForm() {
             paperColor: drawing.paperColor,
           });
           if (result.error) setError(result.error);
+          else dispatch({ type: "clear-drawing-draft", id: draftId });
         }}
       />
     </div>

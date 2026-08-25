@@ -32,10 +32,13 @@ import {
   type ExportedDrawing,
 } from "@/lib/domain/canvas";
 
+import type { DrawingDraft } from "@/types";
+
 export type DrawingStudioHandle = {
   exportDrawing: () => ExportedDrawing | null;
   hasMarks: () => boolean;
   exportOps: () => CanvasOp[];
+  exportDraft: (id: string) => DrawingDraft | null;
 };
 
 export type StudioReference = { id: string; name: string; preview?: string };
@@ -44,24 +47,31 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
   actionLabel?: string;
   busy?: boolean;
   compact?: boolean;
+  draftId?: string;
   ghostImage?: string;
   initialImage?: string;
+  initialDraft?: DrawingDraft;
   references?: StudioReference[];
   sidebarExtra?: ReactNode;
   showAction?: boolean;
+  onAutosave?: (draft: DrawingDraft) => void;
   onExport?: (drawing: ExportedDrawing) => void;
 }>(function DrawingStudio({
   actionLabel = "Save drawing",
   busy = false,
   compact = false,
+  draftId,
   ghostImage,
   initialImage,
+  initialDraft,
   references = [],
   sidebarExtra,
   showAction = true,
+  onAutosave,
   onExport,
 }, ref) {
   const liveId = useId();
+  const [bootDraft] = useState(initialDraft);
   const displayRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const layerCanvases = useRef(new Map<string, HTMLCanvasElement>());
@@ -70,8 +80,12 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
   const redoRef = useRef<CanvasOp[]>([]);
   const currentRef = useRef<CanvasStroke | null>(null);
   const toolRef = useRef<CanvasTool>("ink");
-  const [layers, setLayers] = useState<CanvasLayer[]>(() => [createLayer(0)]);
-  const [activeLayerId, setActiveLayerId] = useState("layer-1");
+  const [layers, setLayers] = useState<CanvasLayer[]>(() => (
+    bootDraft?.layers.length
+      ? bootDraft.layers.map(({ id, name, visible, opacity, locked }) => ({ id, name, visible, opacity, locked }))
+      : [createLayer(0)]
+  ));
+  const [activeLayerId, setActiveLayerId] = useState(bootDraft?.activeLayerId ?? "layer-1");
   const [tool, setTool] = useState<CanvasTool>("ink");
   const [color, setColor] = useState(BRUSH_COLORS[0].value);
   const [recent, setRecent] = useState<string[]>([BRUSH_COLORS[0].value]);
@@ -80,13 +94,15 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
   const [hardness, setHardness] = useState(1);
   const [stabilizer, setStabilizer] = useState(0.35);
   const [symmetry, setSymmetry] = useState(false);
-  const [paper, setPaper] = useState<string>(PAPER_PRESETS[0].value);
+  const [paper, setPaper] = useState<string>(bootDraft?.paperColor ?? PAPER_PRESETS[0].value);
   const [zoom, setZoom] = useState(1);
   const [opCount, setOpCount] = useState(0);
   const [redoCount, setRedoCount] = useState(0);
   const [baked, setBaked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("Power studio ready. Draw with a finger, mouse, or stylus.");
+  const onAutosaveRef = useRef(onAutosave);
+  onAutosaveRef.current = onAutosave;
   const layersRef = useRef(layers);
   const activeRef = useRef(activeLayerId);
   const colorRef = useRef(color);
@@ -176,11 +192,49 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
     };
   }, [canvasFor, hasMarks, paper]);
 
+  const snapshotDraft = useCallback((id: string): DrawingDraft | null => {
+    if (!hasMarks()) return null;
+    const drawing = capture();
+    if (!drawing) return null;
+    return {
+      id,
+      paperColor: drawing.paperColor,
+      layers: layersRef.current.map((layer) => ({
+        ...layer,
+        dataUrl: canvasFor(layer.id).toDataURL("image/png"),
+      })),
+      activeLayerId: activeRef.current,
+      composite: drawing.dataUrl,
+      updatedAt: new Date().toISOString(),
+    };
+  }, [canvasFor, capture, hasMarks]);
+
   useImperativeHandle(ref, () => ({
     exportDrawing: capture,
     hasMarks,
     exportOps: () => JSON.parse(JSON.stringify(opsRef.current)) as CanvasOp[],
-  }), [capture, hasMarks]);
+    exportDraft: snapshotDraft,
+  }), [capture, hasMarks, snapshotDraft]);
+
+  useEffect(() => {
+    if (!draftId) return;
+    const save = () => {
+      const draft = snapshotDraft(draftId);
+      if (draft) onAutosaveRef.current?.(draft);
+    };
+    const timer = window.setInterval(save, 8000);
+    const onHide = () => {
+      if (document.visibilityState === "hidden") save();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", save);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", save);
+      save();
+    };
+  }, [draftId, snapshotDraft]);
 
   const rememberColor = (value: string) => {
     setColor(value);
@@ -263,6 +317,10 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
     currentRef.current = null;
     composite();
     bump("Mark added.");
+    if (draftId) {
+      const draft = snapshotDraft(draftId);
+      if (draft) onAutosaveRef.current?.(draft);
+    }
   };
 
   const undo = () => {
@@ -340,9 +398,54 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
   useEffect(() => { composite(); }, [layers, composite]);
 
   useEffect(() => {
-    if (!initialImage) return;
+    if (!bootDraft) return;
+    let cancelled = false;
+    const bitmaps = bootDraft.layers.filter((layer) => layer.dataUrl);
+    const finish = () => {
+      if (cancelled) return;
+      setBaked(true);
+      composite();
+      bump("Draft restored. Undo starts from this still.");
+    };
+    if (!bitmaps.length && bootDraft.composite) {
+      const image = new window.Image();
+      image.onload = () => {
+        if (cancelled) return;
+        const base = document.createElement("canvas");
+        base.width = CANVAS_WIDTH;
+        base.height = CANVAS_HEIGHT;
+        const ctx = base.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        baseRef.current = base;
+        rebuildLayer("layer-1");
+        finish();
+      };
+      image.src = bootDraft.composite;
+      return () => { cancelled = true; };
+    }
+    let remaining = bitmaps.length;
+    if (!remaining) return;
+    for (const layer of bitmaps) {
+      const image = new window.Image();
+      image.onload = () => {
+        if (cancelled) return;
+        const ctx = canvasFor(layer.id).getContext("2d");
+        ctx?.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        remaining -= 1;
+        if (remaining <= 0) finish();
+      };
+      image.src = layer.dataUrl ?? "";
+    }
+    return () => { cancelled = true; };
+  }, [bootDraft, bump, canvasFor, composite, rebuildLayer]);
+
+  useEffect(() => {
+    if (!initialImage || bootDraft) return;
+    let cancelled = false;
     const image = new window.Image();
     image.onload = () => {
+      if (cancelled) return;
       const base = document.createElement("canvas");
       base.width = CANVAS_WIDTH;
       base.height = CANVAS_HEIGHT;
@@ -356,7 +459,8 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
       bump("Previous drawing loaded on Layer 1.");
     };
     image.src = initialImage;
-  }, [bump, composite, initialImage, rebuildLayer]);
+    return () => { cancelled = true; };
+  }, [bootDraft, bump, composite, initialImage, rebuildLayer]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -491,6 +595,7 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
               </li>
             ))}
           </ul>
+          <p className="mt-2 text-xs leading-5 text-black/45">{bootDraft ? "Draft restored in this browser. Undo starts from this still." : "Drafts save in this browser while you draw. Not a PSD round-trip."}</p>
           {selected && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button type="button" onClick={() => updateLayer(selected.id, { visible: !selected.visible })} className="grid size-9 place-items-center rounded-full bg-mist" aria-label="Toggle visibility"><Eye size={15} className={selected.visible ? "text-ink" : "text-black/30"} /></button>

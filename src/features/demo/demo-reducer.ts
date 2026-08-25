@@ -1,12 +1,16 @@
 import { getArtist, getService } from "@/data/mock-data";
+import { getChallenge } from "@/data/seed-challenges";
 import { ARYA_CANVAS_TOOL, type CanvasOp } from "@/lib/domain/canvas";
+import { canEnterChallenge } from "@/lib/domain/challenges";
 import { isIdentityEvent } from "@/lib/domain/identity";
 import { licenseSummary } from "@/lib/domain/license";
 import { calculateCommissionEstimate, canUseRevision, getNextOrderStatus, milestoneBlueprint } from "@/lib/domain/orders";
-import { buildProcessLog } from "@/lib/domain/process-log";
+import { buildProcessLog, processLogFor } from "@/lib/domain/process-log";
+import { emptyProcessConsent, processFiles, processStoryReady, sanitizeProcessCaption, shouldIncludeFinalReplay } from "@/lib/domain/process-stories";
 import { evaluateContactFields, evaluateContactSharing, orderIsProtectedThread } from "@/lib/domain/safety";
 import { joinWaitlist, leaveWaitlist, promoteWaitlistEntry } from "@/lib/domain/waitlist";
-import type { Artwork, Availability, CommissionOrder, CommissionService, DemoFile, Milestone, Notification, OrderAction, PersonaRole, Post } from "@/types";
+import { upsertDrawingDraft } from "@/lib/domain/drawing-drafts";
+import type { Artwork, Availability, CommissionOrder, CommissionService, DemoFile, DrawingDraft, Milestone, Notification, OrderAction, PersonaRole, Post } from "@/types";
 import { createDemoState, type DemoPersistedState } from "./demo-state";
 
 export interface ReduceContext {
@@ -38,12 +42,15 @@ export type DemoCommand =
   | { type: "hide-review"; reviewId: string }
   | { type: "report-review"; reviewId: string }
   | { type: "submit-review"; orderId: string; rating: number; body: string; serviceTitle: string }
-  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string }
+  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string; challengeId?: string }
+  | { type: "process-story-opt-in"; orderId: string; side: "artist" | "buyer"; optIn: boolean; replayOptIn?: boolean; caption?: string }
   | { type: "create-service"; service: CommissionService }
   | { type: "update-availability"; artistId: string; availability: Availability; slots?: number }
   | { type: "mark-read"; id?: string }
   | { type: "parent-approve"; approvalId: string }
   | { type: "track-event"; name: string; payload?: Record<string, string | number | boolean> }
+  | { type: "save-drawing-draft"; draft: DrawingDraft }
+  | { type: "clear-drawing-draft"; id: string }
   | { type: "load-scenario"; scenario: "luna-incoming" | "maya-open-slot" };
 
 export interface ReduceResult {
@@ -77,6 +84,57 @@ function systemMessage(state: DemoPersistedState, ctx: ReduceContext, orderId: s
     ...state,
     messages: [...state.messages, { id: ctx.id("msg"), orderId, senderId: "system", body, kind: "system", moderationState: "ok", createdAt: ctx.now }],
   };
+}
+
+function storyPostId(orderId: string) {
+  return `post-pstory-${orderId}`;
+}
+
+function syncProcessStory(state: DemoPersistedState, ctx: ReduceContext, orderId: string): { state: DemoPersistedState; published: boolean } {
+  const order = state.orders.find((item) => item.id === orderId);
+  const consents = state.processStoryConsents ?? [];
+  const stories = state.processStories ?? [];
+  const consent = consents.find((item) => item.orderId === orderId) ?? emptyProcessConsent(orderId);
+  const { sketch, final } = processFiles(state.files, orderId);
+  const ready = order
+    ? processStoryReady({ status: order.status, sketch, final, artistOptIn: consent.artistOptIn, buyerOptIn: consent.buyerOptIn })
+    : { ok: false as const, reason: "not-complete" as const };
+  const existing = stories.find((item) => item.orderId === orderId);
+  if (!order || !ready.ok || !sketch || !final) {
+    return {
+      state: {
+        ...state,
+        processStories: stories.filter((item) => item.orderId !== orderId),
+        createdPosts: state.createdPosts.filter((item) => item.id !== storyPostId(orderId)),
+      },
+      published: false,
+    };
+  }
+  const includeReplay = shouldIncludeFinalReplay(consent.artistReplayOptIn, processLogFor(state.processLogs, final.id));
+  const story = {
+    id: `pstory-${order.id}`,
+    orderId: order.id,
+    artistId: order.artistId,
+    sketchFileId: sketch.id,
+    finalFileId: final.id,
+    includeReplay,
+    caption: consent.buyerCaption,
+    publishedAt: existing?.publishedAt ?? ctx.now,
+  };
+  const post: Post = {
+    id: storyPostId(order.id),
+    artistId: order.artistId,
+    postType: "process",
+    body: story.caption || "Sketch to final from a completed commission.",
+    publishedAt: story.publishedAt.slice(0, 10),
+  };
+  let next: DemoPersistedState = {
+    ...state,
+    processStories: [story, ...stories.filter((item) => item.orderId !== orderId)],
+    createdPosts: [post, ...state.createdPosts.filter((item) => item.id !== post.id)],
+  };
+  if (!existing) next = track(next, ctx, "process_story_published", { orderId: order.id });
+  return { state: next, published: true };
 }
 
 function setMilestones(state: DemoPersistedState, orderId: string, completed: number, current: number): DemoPersistedState {
@@ -254,7 +312,12 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
           ...next,
           ledger: next.ledger.map((entry) => (entry.orderId === current.id && entry.entryType === "pending" ? { ...entry, entryType: "available" as const } : entry)),
         };
-        return { state: notify(track(next, ctx, "delivery_accepted"), ctx, [{ profileId: current.artistId, title: "Delivery accepted", detail: "Simulated earnings are now available.", href: "/studio", type: "completed" }, { profileId: current.buyerId, title: "Leave a review", detail: "Tell others how the commission went.", href: `/orders/${current.id}`, type: "review" }]), toast: "Artwork accepted. Order complete." };
+        return { state: notify(track(next, ctx, "delivery_accepted"), ctx, [
+          { profileId: current.artistId, title: "Delivery accepted", detail: "Simulated earnings are now available.", href: "/studio", type: "completed" },
+          { profileId: current.buyerId, title: "Leave a review", detail: "Tell others how the commission went.", href: `/orders/${current.id}`, type: "review" },
+          { profileId: current.artistId, title: "Share the process?", detail: "Optional. Both people must opt in. The brief stays private.", href: `/orders/${current.id}`, type: "process-story" },
+          { profileId: current.buyerId, title: "Share the process?", detail: "Optional. Both people must opt in. The brief stays private.", href: `/orders/${current.id}`, type: "process-story" },
+        ]), toast: "Artwork accepted. Order complete." };
       }
       return { state, error: "Incomplete buyer action." };
     }
@@ -356,6 +419,42 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       const reported = state.reportedReviewIds.includes(command.reviewId) ? state.reportedReviewIds : [...state.reportedReviewIds, command.reviewId];
       return { state: track({ ...state, reportedReviewIds: reported }, ctx, "report_submitted", { reviewId: command.reviewId }), toast: "Report received in demo mode. No moderator is on call." };
     }
+    case "process-story-opt-in": {
+      const current = state.orders.find((item) => item.id === command.orderId);
+      if (!current) return { state, error: "Order not found." };
+      if (current.status !== "completed") return { state, error: "Share process is only available after delivery." };
+      const isArtist = command.side === "artist" && ctx.role === "artist" && ctx.artistId === current.artistId;
+      const isBuyer = command.side === "buyer" && ctx.role === "buyer" && ctx.actorId === current.buyerId;
+      if (!isArtist && !isBuyer) return { state, error: "Only the buyer or artist on this order can share process." };
+      const caption = sanitizeProcessCaption(command.caption ?? "");
+      if (isBuyer && caption) {
+        const safety = evaluateContactSharing(caption, true);
+        if (!safety.allowed) {
+          return { state, error: "Caption not saved. Sharing personal contact information is restricted on public process stories.", toast: "Caption not saved. Sharing personal contact information is restricted on public process stories." };
+        }
+      }
+      const consents = state.processStoryConsents ?? [];
+      const previous = consents.find((item) => item.orderId === current.id) ?? emptyProcessConsent(current.id, ctx.id("consent"));
+      const nextConsent = {
+        ...previous,
+        artistOptIn: isArtist ? command.optIn : previous.artistOptIn,
+        artistReplayOptIn: isArtist ? Boolean(command.optIn && command.replayOptIn) : previous.artistReplayOptIn,
+        buyerOptIn: isBuyer ? command.optIn : previous.buyerOptIn,
+        buyerCaption: isBuyer ? caption : previous.buyerCaption,
+      };
+      let next: DemoPersistedState = {
+        ...state,
+        processStoryConsents: [nextConsent, ...consents.filter((item) => item.orderId !== current.id)],
+      };
+      next = track(next, ctx, "process_story_opt_in", { orderId: current.id, side: command.side, optIn: command.optIn });
+      const synced = syncProcessStory(next, ctx, current.id);
+      const toast = synced.published
+        ? "Process story is public. Brief, messages, and references stay private."
+        : command.optIn
+          ? "Saved. The story stays private until both people opt in."
+          : "Process story is private again.";
+      return { state: synced.state, toast, href: synced.published ? `/process/${current.id}` : undefined };
+    }
     case "create-artwork": {
       const processLog = buildProcessLog(
         command.artwork.id,
@@ -372,15 +471,28 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         ...command.artwork,
         tools: tools.length ? tools : ["Uploaded file"],
       };
+      const challenge = command.challengeId ? getChallenge(command.challengeId) : undefined;
+      const entered = Boolean(command.challengeId && canEnterChallenge(challenge, processLog, artwork.tools));
+      const boundLog = entered && processLog && command.challengeId ? { ...processLog, challengeId: command.challengeId } : processLog;
+      const challengeId = entered ? command.challengeId : undefined;
       let next: DemoPersistedState = {
         ...state,
         createdArtworks: [artwork, ...state.createdArtworks],
         createdPosts: command.post ? [command.post, ...state.createdPosts] : state.createdPosts,
-        processLogs: processLog ? [processLog, ...state.processLogs.filter((item) => item.subjectId !== artwork.id)] : state.processLogs,
+        processLogs: boundLog ? [boundLog, ...state.processLogs.filter((item) => item.subjectId !== artwork.id)] : state.processLogs,
+        challengeEntries: challengeId
+          ? [{ id: ctx.id("centry"), challengeId, artworkId: artwork.id, artistId: artwork.artistId, seedSaves: 0 }, ...(state.challengeEntries ?? []).filter((item) => item.artworkId !== artwork.id)]
+          : state.challengeEntries ?? [],
       };
       next = track(next, ctx, "artwork_published", { source: processLog ? "canvas" : "upload" });
-      if (processLog) next = track(next, ctx, "process_log_recorded", { subject: "artwork" });
-      return { state: next, toast: "Artwork published.", href: `/art/${command.artwork.id}` };
+      if (boundLog) next = track(next, ctx, "process_log_recorded", { subject: "artwork" });
+      if (challengeId) next = track(next, ctx, "challenge_entered", { challengeId, artworkId: artwork.id });
+      const toast = challengeId
+        ? "Entered the challenge."
+        : command.challengeId && !processLog
+          ? "Artwork published. Uploads cannot enter a human-only challenge."
+          : "Artwork published.";
+      return { state: next, toast, href: challengeId ? `/challenges/${challengeId}` : `/art/${command.artwork.id}` };
     }
     case "create-service":
       return { state: { ...state, createdServices: [command.service, ...state.createdServices] }, toast: "Service published.", href: `/commissions/${command.service.id}` };
@@ -404,6 +516,12 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       ) {
         return { state };
       }
+      if (
+        command.name === "challenge_opened" &&
+        state.events.some((event) => event.name === command.name && event.payload?.challengeId === command.payload?.challengeId)
+      ) {
+        return { state };
+      }
       return { state: track(state, ctx, command.name, command.payload) };
     }
     case "parent-approve": {
@@ -422,6 +540,10 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       }
       return { state: next, toast: "Simulated parent approval completed." };
     }
+    case "save-drawing-draft":
+      return { state: { ...state, drawingDrafts: upsertDrawingDraft(state.drawingDrafts ?? [], command.draft) } };
+    case "clear-drawing-draft":
+      return { state: { ...state, drawingDrafts: (state.drawingDrafts ?? []).filter((item) => item.id !== command.id) } };
     case "load-scenario": {
       if (command.scenario === "luna-incoming") {
         const service = getService("anime-portrait");

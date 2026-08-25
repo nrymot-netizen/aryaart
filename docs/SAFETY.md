@@ -18,10 +18,10 @@ If a sentence would only be true after lawyers, age assurance, and a moderation 
 | Simulated parent approval | Request + checkout for Maya | Not legal consent |
 | Private files | Order participants only in the UI | Demo store is still on that browser |
 | No generative AI | Canvas PRD + studio | Must not be added “for growth” |
-| Seeded catalog | `src/data/` | Human-reviewed in-repo art, not live UGC between users |
+| Report / block / leave | Order chrome + review hide/report | Demo stubs. Copy says no moderator is on call |
 | Tests | `tests/safety.test.ts`, demo-loop contact block | Does not test canvas/brief side channels |
 
-PRD also asks for **report, block, and leave/cancel near messages**. Those controls are **not built**. Reviews mention demo report/hide; that is **not built**.
+PRD also asks for **report, block, and leave/cancel near messages**. Those demo stubs exist on the order, plus review report/hide. There is still no moderator.
 
 ## 2. Demo operating procedures (use these now)
 

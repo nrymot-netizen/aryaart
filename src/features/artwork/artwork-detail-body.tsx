@@ -2,18 +2,25 @@
 
 import Link from "next/link";
 import { artists, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
+import { getChallenge } from "@/data/seed-challenges";
 import { ArtworkStage } from "@/features/artwork/artwork-identity";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
+import { TryBriefButton } from "@/features/challenges/try-brief-button";
 import { ArtworkCard } from "@/components/artwork-card";
 import { ArtworkMedia } from "@/components/artwork-media";
 import { StatusPill } from "@/components/status-pill";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
 import { formatDate, subjectLabel } from "@/lib/utils";
+import { entryForArtwork } from "@/lib/domain/challenges";
+import { useDemo } from "@/features/demo/demo-provider";
 import type { Artist, Artwork } from "@/types";
 
 export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwork; artist: Artist; related?: Artwork[] }) {
+  const { state } = useDemo();
   const relatedWork = related ?? getRelatedArtworks(artwork);
   const primaryService = getArtistServices(artist.id)[0];
+  const challengeEntry = entryForArtwork(state.challengeEntries ?? [], artwork.id);
+  const challenge = challengeEntry ? getChallenge(challengeEntry.challengeId) : undefined;
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <Link href="/" className="text-sm font-bold text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">← Discover</Link>
@@ -35,6 +42,13 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
           </dl>
           <div className="mt-4 flex flex-wrap gap-2">{artwork.tags.map((tag) => <span key={tag} className="rounded-full bg-mist px-3 py-1 text-xs font-semibold text-plum">#{tag}</span>)}</div>
           <p className="mt-4 text-xs text-black/45">Made with {artwork.tools.join(", ")}{artwork.aiDisclosure ? ". AI-assisted." : ". No generative AI."} · {artwork.format}</p>
+          {challenge && (
+            <div className="mt-6 rounded-3xl border border-plum/15 bg-mist/60 p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">Entered {challenge.title}</p>
+              <p className="mt-2 text-sm leading-6 text-black/60">{challenge.brief}</p>
+              <div className="mt-4"><TryBriefButton challenge={challenge} /></div>
+            </div>
+          )}
           <div className="mt-8 rounded-3xl border border-black/[0.07] bg-white p-5">
             <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold">Commission this artist</h2><StatusPill status={artist.availability} slots={artist.slots} /></div>
             {primaryService && <p className="mt-2 text-sm text-black/50">{primaryService.title} from ${primaryService.startingPrice}</p>}

@@ -54,6 +54,7 @@ export function ArtworkStage({ artwork, artistName }: { artwork: Artwork; artist
         imageSrc={artwork.image}
         drawnOnArya={onArya}
         humanMade={humanMade}
+        processLogJson={canReplay && processLog ? JSON.stringify(processLog, null, 2) : undefined}
         onCopied={() => dispatch({ type: "track-event", name: "share_card_copied", payload: { artworkId: artwork.id } })}
         onDownloaded={() => dispatch({ type: "track-event", name: "share_card_downloaded", payload: { artworkId: artwork.id } })}
       />

@@ -111,6 +111,7 @@ export function buildProcessLog(
   meta: ProcessLogMeta,
   recordedAt: string,
   id: string,
+  challengeId?: string,
 ): ProcessLog | null {
   const sampled = sampleProcessLog(ops, meta);
   if (!sampled.length) return null;
@@ -123,6 +124,7 @@ export function buildProcessLog(
     height: meta.height ?? CANVAS_HEIGHT,
     ops: sampled,
     recordedAt,
+    ...(challengeId ? { challengeId } : {}),
   };
 }
 

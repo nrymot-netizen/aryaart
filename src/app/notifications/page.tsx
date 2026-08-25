@@ -6,6 +6,7 @@ import { PageIntro } from "@/components/page-intro";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Bell } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { DemoEventInspector } from "@/features/demo/demo-event-inspector";
 
 export default function NotificationsPage() {
   const { state, persona, dispatch } = useDemo();
@@ -28,6 +29,7 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+      <DemoEventInspector />
     </>
   );
 }

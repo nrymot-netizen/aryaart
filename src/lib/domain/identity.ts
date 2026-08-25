@@ -9,6 +9,11 @@ export const IDENTITY_EVENTS = [
   "share_card_downloaded",
   "process_log_recorded",
   "first_paid_piece_viewed",
+  "challenge_opened",
+  "challenge_entered",
+  "try_brief_clicked",
+  "process_story_opt_in",
+  "process_story_published",
 ] as const;
 
 export type IdentityEventName = (typeof IDENTITY_EVENTS)[number];

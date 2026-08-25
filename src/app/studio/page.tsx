@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CurrencyDollar, Eye, PaintBrush, TrendUp } from "@phosphor-icons/react";
-import { artists, getService } from "@/data/mock-data";
+import { artists, getArtistServices, getService } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
 import { calculateSimulatedBalance } from "@/lib/domain/ledger";
 import { orderStatusLabel } from "@/lib/domain/orders";
@@ -30,18 +30,22 @@ export default function StudioPage() {
   const incoming = state.orders.filter((order) => order.artistId === artistId && order.status === "awaiting-artist");
   const active = state.orders.filter((order) => order.artistId === artistId && ["payment-required", "in-progress", "sketch-review", "final-review"].includes(order.status));
   const created = state.createdArtworks.filter((item) => item.artistId === artistId);
+  const waitlistCount = state.waitlists.filter((entry) => entry.artistId === artistId && entry.status === "active").length;
+  const catalogSlots = getArtistServices(artistId).reduce((sum, service) => sum + (service.remainingSlots ?? 0), 0);
+  const openSlots = slots ?? catalogSlots;
 
   return (
     <>
       <PageIntro eyebrow="Artist studio" title="Your creative business" description="Requests, availability, simulated earnings, and new work — all on one desk." />
       <PersonaContextBanner />
       <div className="mx-auto grid max-w-5xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
-        {[{ icon: CurrencyDollar, label: "Available balance", value: `$${balance.available.toFixed(2)}` }, { icon: TrendUp, label: "Pending", value: `$${balance.pending.toFixed(2)}` }, { icon: PaintBrush, label: "Active projects", value: String(active.length) }, { icon: Eye, label: "New works in demo", value: String(created.length) }].map(({ icon: Icon, label, value }) => <div key={label} className="rounded-3xl border border-black/[0.07] bg-white p-5"><Icon size={22} className="text-plum" /><p className="mt-6 text-sm text-black/50">{label}</p><p className="mt-1 text-2xl font-bold tracking-tight">{value}</p></div>)}
+        {[{ icon: CurrencyDollar, label: "Available balance", value: `$${balance.available.toFixed(2)}` }, { icon: TrendUp, label: "Pending", value: `$${balance.pending.toFixed(2)}` }, { icon: PaintBrush, label: "Active projects", value: String(active.length) }, { icon: Eye, label: "Waitlist demand", value: String(waitlistCount) }].map(({ icon: Icon, label, value }) => <div key={label} className="rounded-3xl border border-black/[0.07] bg-white p-5"><Icon size={22} className="text-plum" /><p className="mt-6 text-sm text-black/50">{label}</p><p className="mt-1 text-2xl font-bold tracking-tight">{value}</p></div>)}
       </div>
       <div className="mx-auto mt-10 grid max-w-5xl gap-6 px-4 pb-20 sm:px-6 lg:grid-cols-2">
         <FirstPaidPieceCard artistId={artistId} />
         <section className="rounded-4xl bg-white p-5">
           <div className="flex items-center justify-between"><h2 className="font-bold">Availability</h2><StatusPill status={availability} slots={slots} /></div>
+          <p className="mt-2 text-sm text-black/50">{incoming.length} incoming · {waitlistCount} waitlist · {openSlots || "no"} open slot{openSlots === 1 ? "" : "s"}</p>
           <div className="mt-4 flex flex-wrap gap-2">{(["open", "limited", "waitlist", "closed"] as const).map((item) => <Button key={item} variant={availability === item ? "primary" : "ghost"} onClick={() => dispatch({ type: "update-availability", artistId, availability: item, slots: item === "limited" ? slots ?? 1 : undefined })}>{item}</Button>)}</div>
           {artistId === "maya" && <Button className="mt-4 w-full" variant="secondary" onClick={() => dispatch({ type: "load-scenario", scenario: "maya-open-slot" })}>Open a slot and promote waitlist</Button>}
         </section>
@@ -50,6 +54,7 @@ export default function StudioPage() {
           <p className="mt-2 text-sm text-black/50">Jump reviewers into a live Luna request without editing state by hand.</p>
           <Button className="mt-4 w-full" onClick={() => dispatch({ type: "load-scenario", scenario: "luna-incoming" })}>Load Luna incoming request</Button>
           <Link href="/create/draw" className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-mist text-sm font-bold text-plum">Open the drawing studio</Link>
+          <Link href="/studio/services" className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-mist text-sm font-bold text-plum">Your services</Link>
         </section>
         <section className="rounded-4xl bg-white p-5 lg:col-span-2">
           <h2 className="font-bold">Incoming requests</h2>

@@ -6,11 +6,12 @@ import { artists, getArtwork, services } from "@/data/mock-data";
 import { StatusPill } from "@/components/status-pill";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
+import { CreatedServicePage } from "@/features/commissions/created-service-page";
 
 export default async function ServicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const service = services.find((item) => item.id === id);
-  if (!service) notFound();
+  if (!service) return <CreatedServicePage id={id} />;
   const artist = artists.find((item) => item.id === service.artistId);
   if (!artist) notFound();
   const examples = service.exampleArtworkIds.map((artworkId) => getArtwork(artworkId)).filter(Boolean);

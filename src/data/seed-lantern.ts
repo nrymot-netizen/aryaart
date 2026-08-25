@@ -2,6 +2,8 @@ import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
 import type { ProcessLog } from "@/lib/domain/process-log";
 import type { Artwork, Post } from "@/types";
 
+export const SEED_LANTERN_CHALLENGE_ID = "night-lantern";
+
 export const seedLanternArtwork: Artwork = {
   id: "lantern-study",
   artistId: "luna",
@@ -34,6 +36,7 @@ export const seedLanternLog: ProcessLog = {
   id: "plog-lantern-study",
   subjectId: "lantern-study",
   subjectKind: "artwork",
+  challengeId: SEED_LANTERN_CHALLENGE_ID,
   paperColor: "#1c1922",
   width: 720,
   height: 900,

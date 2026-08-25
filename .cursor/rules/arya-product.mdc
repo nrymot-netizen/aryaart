@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Arya Art
 
-Read `docs/README.md` then `docs/CURRENT_STATE.md` before building. Phases 0–8 are shipped. Next is Phase 9.
+Read `docs/README.md` then `docs/CURRENT_STATE.md` before building. Phases 0–10 are shipped. Do not start a real backend unless a later phase says so.
 
 - Art leads. No follower counts. No open DMs. No generative AI in the canvas.
 - Demo payments stay labeled simulated. No real cards, Supabase, or wallets unless a later phase says so.

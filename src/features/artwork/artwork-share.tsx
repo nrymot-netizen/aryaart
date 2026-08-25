@@ -63,6 +63,7 @@ export function ArtworkShareActions({
   imageSrc,
   drawnOnArya,
   humanMade,
+  processLogJson,
   onCopied,
   onDownloaded,
 }: {
@@ -71,6 +72,7 @@ export function ArtworkShareActions({
   imageSrc: string;
   drawnOnArya: boolean;
   humanMade: boolean;
+  processLogJson?: string;
   onCopied?: () => void;
   onDownloaded?: () => void;
 }) {
@@ -108,6 +110,18 @@ export function ArtworkShareActions({
     }
   };
 
+  const downloadLog = () => {
+    if (!processLogJson) return;
+    const blob = new Blob([processLogJson], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 28) || "arya"}-replay.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus("Replay log downloaded.");
+  };
+
   const copyLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
     onCopied?.();
@@ -119,6 +133,7 @@ export function ArtworkShareActions({
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => void share("copy")}><Copy size={16} /> Copy share card</Button>
         <Button variant="ghost" onClick={() => void share("download")}><DownloadSimple size={16} /> Download card</Button>
+        {processLogJson && <Button variant="ghost" onClick={downloadLog}><DownloadSimple size={16} /> Download replay JSON</Button>}
         <Button variant="ghost" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy link</Button>
       </div>
       {status && <p className="text-xs font-semibold text-plum" role="status">{status}</p>}

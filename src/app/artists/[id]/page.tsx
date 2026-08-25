@@ -14,6 +14,8 @@ import { artists, getArtist, getArtistArt, getArtistPosts, getArtistServices, ge
 import type { ArtistProfileTab } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { CreatedArtistWork } from "@/features/studio/created-artist-work";
+import { CreatedArtistPosts } from "@/features/studio/created-artist-posts";
+import { CreatedArtistServices } from "@/features/studio/created-artist-services";
 import { ReviewList } from "@/features/reviews/review-list";
 
 const tabs: { id: ArtistProfileTab; label: string }[] = [
@@ -80,8 +82,8 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
               {portfolio.length ? <div className="columns-2 gap-4">{portfolio.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} />)}</div> : <EmptyState icon={ImageSquare} title="No public portfolio yet" description="This artist has not published portfolio work." />}
             </>
           )}
-          {active === "posts" && <PostList artistId={id} />}
-          {active === "commissions" && <ServiceList artistId={id} />}
+          {active === "posts" && <><CreatedArtistPosts artistId={id} /><PostList artistId={id} /></>}
+          {active === "commissions" && <><CreatedArtistServices artistId={id} /><ServiceList artistId={id} /></>}
           {active === "reviews" && <ReviewList artistId={id} />}
           {active === "about" && <AboutRules artistId={id} />}
         </div>

@@ -28,6 +28,7 @@ export type IntendedUse = "personal" | "commercial";
 export type ArtworkFormat = "digital" | "physical";
 export type WaitlistStatus = "active" | "left" | "promoted";
 export type ArtistProfileTab = "portfolio" | "posts" | "commissions" | "reviews" | "about";
+export type ChallengeStatus = "active" | "closed";
 
 export interface ArtistRules {
   acceptedSubjects: string[];
@@ -217,6 +218,61 @@ export interface AnalyticsEvent {
   name: string;
   createdAt: string;
   payload?: Record<string, string | number | boolean>;
+}
+
+export interface Challenge {
+  id: string;
+  title: string;
+  brief: string;
+  opensAt: string;
+  closesAt: string;
+  status: ChallengeStatus;
+}
+
+export interface ChallengeEntry {
+  id: string;
+  challengeId: string;
+  artworkId: string;
+  artistId: string;
+  seedSaves: number;
+}
+
+export interface ProcessStoryConsent {
+  id: string;
+  orderId: string;
+  artistOptIn: boolean;
+  artistReplayOptIn: boolean;
+  buyerOptIn: boolean;
+  buyerCaption: string;
+}
+
+export interface ProcessStory {
+  id: string;
+  orderId: string;
+  artistId: string;
+  sketchFileId: string;
+  finalFileId: string;
+  includeReplay: boolean;
+  caption: string;
+  publishedAt: string;
+}
+
+export interface DrawingDraftLayer {
+  id: string;
+  name: string;
+  visible: boolean;
+  opacity: number;
+  locked: boolean;
+  dataUrl?: string;
+}
+
+export interface DrawingDraft {
+  id: string;
+  paperColor: string;
+  layers: DrawingDraftLayer[];
+  activeLayerId: string;
+  composite: string;
+  updatedAt: string;
 }
 
 export interface OrderReport {

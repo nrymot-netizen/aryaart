@@ -23,6 +23,13 @@ Time box: about 10 minutes.
 2. Draw, title, publish.
 3. Piece appears in Discover **Drawn on Arya** and `/art/[id]`.
 4. Optional: Offer commissions like this → service form prefilled.
+5. Draw a mark, leave Create, return: the still is still there. Publish clears the draft.
+
+## Studio demand and checkout
+
+- Studio as Luna shows incoming · waitlist · open slots. Studio as Maya shows waitlist demand (seeded 3).
+- Checkout copy: simulated pay, digital files plus a license, no physical shipping.
+- Notifications includes a **Demo events** list (this browser only).
 
 ## Safety loop
 
@@ -56,6 +63,20 @@ Never: “You own the art.” Never: “You own the NFT.”
 - Studio as Luna shows **First paid piece**.
 - Grep the UI for vice names, “NFT,” “mint,” “hunger,” “sin.” Zero hits in user-facing copy.
 
+## Identity B — challenges (shipped)
+
+- Discover shows **Night lantern** with Try this brief.
+- `/challenges/night-lantern` ranks Arya-canvas entries by saves, not followers.
+- Luna can enter from Create; uploads cannot enter.
+- Buyer can save an entry and request Luna from a tile. Maya tiles stay waitlist.
+
+## Identity C — process stories (shipped)
+
+- `/orders/order-luna-first-paid` as Alex, then Luna: Share process is off until both opt in.
+- After both opt in, Discover shows **Sketch to final** and `/process/order-luna-first-paid` has stills (optional final replay). No brief, messages, or references.
+- Opting out unpublishes.
+- Completing a Maya order does not auto-post. Caption with an email is blocked.
+
 ## Commands
 
 ```bash
@@ -71,6 +92,7 @@ After UI work: exercise the changed flow in the browser (desktop and 360px). A s
 - Keyboard to request submit, persona switcher, draw route primary actions.
 - Canvas has an accessible name.
 - Replay (when present) does not autoplay against reduced motion.
+- Challenge grid is keyboard-reachable; each tile names title + artist.
 - Contrast on chrome independent of artwork.
 
 ## Definition of done (every phase)
