@@ -1,8 +1,9 @@
-import { getArtist, getService } from "@/data/mock-data";
+import { getArtist, getArtwork, getService } from "@/data/mock-data";
 import { getChallenge } from "@/data/seed-challenges";
 import { ARYA_CANVAS_TOOL, type CanvasOp } from "@/lib/domain/canvas";
 import { canEnterChallenge } from "@/lib/domain/challenges";
-import { isIdentityEvent } from "@/lib/domain/identity";
+import { canDrawBack, canPublishDrawBack } from "@/lib/domain/draw-back";
+import { isProductEvent, uniqueEventKey } from "@/lib/domain/events";
 import { licenseSummary } from "@/lib/domain/license";
 import { calculateCommissionEstimate, canUseRevision, getNextOrderStatus, milestoneBlueprint } from "@/lib/domain/orders";
 import { buildProcessLog, processLogFor } from "@/lib/domain/process-log";
@@ -42,7 +43,7 @@ export type DemoCommand =
   | { type: "hide-review"; reviewId: string }
   | { type: "report-review"; reviewId: string }
   | { type: "submit-review"; orderId: string; rating: number; body: string; serviceTitle: string }
-  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string; challengeId?: string }
+  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string; challengeId?: string; replyToArtworkId?: string }
   | { type: "process-story-opt-in"; orderId: string; side: "artist" | "buyer"; optIn: boolean; replayOptIn?: boolean; caption?: string }
   | { type: "create-service"; service: CommissionService }
   | { type: "update-availability"; artistId: string; availability: Availability; slots?: number }
@@ -51,7 +52,7 @@ export type DemoCommand =
   | { type: "track-event"; name: string; payload?: Record<string, string | number | boolean> }
   | { type: "save-drawing-draft"; draft: DrawingDraft }
   | { type: "clear-drawing-draft"; id: string }
-  | { type: "load-scenario"; scenario: "luna-incoming" | "maya-open-slot" };
+  | { type: "load-scenario"; scenario: "luna-incoming" | "maya-open-slot" | "parent-approval" };
 
 export interface ReduceResult {
   state: DemoPersistedState;
@@ -281,6 +282,8 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
       }
       if (command.action === "complete-checkout") {
         if (ctx.accountType === "protected-teen" && !current.parentApproved) {
+          const existing = state.parentApprovals.find((item) => item.orderId === current.id && item.status === "pending" && item.action === "checkout");
+          if (existing) return { state, error: "Parent approval required.", toast: "Still waiting on simulated parent approval." };
           const approval = { id: ctx.id("pa"), teenPersonaId: ctx.actorId, action: "checkout" as const, orderId: current.id, status: "pending" as const, createdAt: ctx.now };
           return { state: notify({ ...state, parentApprovals: [approval, ...state.parentApprovals] }, ctx, [{ profileId: "parent-preview", title: "Checkout needs parent approval", detail: "Simulated approval is required before demo payment.", href: `/checkout/${current.id}`, type: "parent-approval" }]), toast: "Parent approval required.", error: "Parent approval required." };
         }
@@ -471,10 +474,23 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         ...command.artwork,
         tools: tools.length ? tools : ["Uploaded file"],
       };
+      if (command.replyToArtworkId) {
+        const source = state.createdArtworks.find((item) => item.id === command.replyToArtworkId) ?? getArtwork(command.replyToArtworkId);
+        const sourceLog = source ? processLogFor(state.processLogs, source.id) : null;
+        if (!canDrawBack(source, sourceLog)) {
+          return { state, error: "This piece cannot be drawn back." };
+        }
+        if (!canPublishDrawBack(source, sourceLog, artwork, processLog)) {
+          return { state, error: "Draw the reply on Arya. Uploads cannot enter." };
+        }
+      }
       const challenge = command.challengeId ? getChallenge(command.challengeId) : undefined;
       const entered = Boolean(command.challengeId && canEnterChallenge(challenge, processLog, artwork.tools));
       const boundLog = entered && processLog && command.challengeId ? { ...processLog, challengeId: command.challengeId } : processLog;
       const challengeId = entered ? command.challengeId : undefined;
+      const pair = command.replyToArtworkId && processLog
+        ? { id: ctx.id("dback"), sourceArtworkId: command.replyToArtworkId, replyArtworkId: artwork.id, publishedAt: ctx.now }
+        : null;
       let next: DemoPersistedState = {
         ...state,
         createdArtworks: [artwork, ...state.createdArtworks],
@@ -483,16 +499,20 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         challengeEntries: challengeId
           ? [{ id: ctx.id("centry"), challengeId, artworkId: artwork.id, artistId: artwork.artistId, seedSaves: 0 }, ...(state.challengeEntries ?? []).filter((item) => item.artworkId !== artwork.id)]
           : state.challengeEntries ?? [],
+        drawBacks: pair ? [pair, ...(state.drawBacks ?? []).filter((item) => item.replyArtworkId !== artwork.id)] : state.drawBacks ?? [],
       };
       next = track(next, ctx, "artwork_published", { source: processLog ? "canvas" : "upload" });
       if (boundLog) next = track(next, ctx, "process_log_recorded", { subject: "artwork" });
       if (challengeId) next = track(next, ctx, "challenge_entered", { challengeId, artworkId: artwork.id });
-      const toast = challengeId
-        ? "Entered the challenge."
-        : command.challengeId && !processLog
-          ? "Artwork published. Uploads cannot enter a human-only challenge."
-          : "Artwork published.";
-      return { state: next, toast, href: challengeId ? `/challenges/${challengeId}` : `/art/${command.artwork.id}` };
+      if (pair) next = track(next, ctx, "draw_back_published", { pairId: pair.id, sourceArtworkId: pair.sourceArtworkId, replyArtworkId: pair.replyArtworkId });
+      const toast = pair
+        ? "Draw-back published. Both replays play together."
+        : challengeId
+          ? "Entered the challenge."
+          : command.challengeId && !processLog
+            ? "Artwork published. Uploads cannot enter a human-only challenge."
+            : "Artwork published.";
+      return { state: next, toast, href: pair ? `/draw-back/${pair.id}` : challengeId ? `/challenges/${challengeId}` : `/art/${command.artwork.id}` };
     }
     case "create-service":
       return { state: { ...state, createdServices: [command.service, ...state.createdServices] }, toast: "Service published.", href: `/commissions/${command.service.id}` };
@@ -509,22 +529,16 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         },
       };
     case "track-event": {
-      if (!isIdentityEvent(command.name)) return { state };
-      if (
-        command.name === "first_paid_piece_viewed" &&
-        state.events.some((event) => event.name === command.name && event.payload?.orderId === command.payload?.orderId)
-      ) {
-        return { state };
-      }
-      if (
-        command.name === "challenge_opened" &&
-        state.events.some((event) => event.name === command.name && event.payload?.challengeId === command.payload?.challengeId)
-      ) {
+      if (!isProductEvent(command.name)) return { state };
+      const key = uniqueEventKey(command.name);
+      const value = key ? command.payload?.[key] : undefined;
+      if (key && value !== undefined && state.events.some((event) => event.name === command.name && event.payload?.[key] === value)) {
         return { state };
       }
       return { state: track(state, ctx, command.name, command.payload) };
     }
     case "parent-approve": {
+      if (ctx.role !== "parent-preview") return { state, error: "Only parent preview can complete this simulated approval." };
       const approval = state.parentApprovals.find((item) => item.id === command.approvalId);
       if (!approval) return { state, error: "Approval not found." };
       let next: DemoPersistedState = { ...state, parentApprovals: state.parentApprovals.map((item) => (item.id === command.approvalId ? { ...item, status: "approved" as const } : item)) };
@@ -533,9 +547,13 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         if (order?.status === "draft") {
           const released = { ...order, status: "awaiting-artist" as const, parentApproved: true, updatedAt: ctx.now };
           next = replaceOrder(next, released);
-          next = notify(next, ctx, [{ profileId: released.artistId, title: "New commission request", detail: "Parent approval completed. The request is awaiting the artist.", href: `/orders/${released.id}`, type: "request-received" }]);
+          next = notify(next, ctx, [
+            { profileId: released.artistId, title: "New commission request", detail: "Parent approval completed. The request is awaiting the artist.", href: `/orders/${released.id}`, type: "request-received" },
+            { profileId: released.buyerId, title: "Parent approved", detail: "Your request can reach the artist now.", href: `/orders/${released.id}`, type: "parent-approval" },
+          ]);
         } else if (order) {
           next = replaceOrder(next, { ...order, parentApproved: true });
+          next = notify(next, ctx, [{ profileId: order.buyerId, title: "Parent approved", detail: "You can complete simulated checkout.", href: `/checkout/${order.id}`, type: "parent-approval" }]);
         }
       }
       return { state: next, toast: "Simulated parent approval completed." };
@@ -574,6 +592,47 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
           updatedAt: ctx.now,
         };
         return { state: { ...state, orders: [order, ...state.orders] }, toast: "Loaded Luna incoming request.", href: `/orders/${order.id}` };
+      }
+      if (command.scenario === "parent-approval") {
+        const service = getService("anime-portrait");
+        if (!service) return { state, error: "Missing Luna service." };
+        const existing = state.orders.find((item) => item.buyerId === "buyer-riley" && item.status === "draft" && state.parentApprovals.some((approval) => approval.orderId === item.id && approval.status === "pending"));
+        if (existing) return { state: { ...state, personaId: "parent-preview" }, href: `/orders/${existing.id}`, toast: "A teen request is already waiting on parent preview." };
+        const estimate = calculateCommissionEstimate(service.startingPrice, { characterCount: 1, extraCharacterPrice: service.extraCharacterPrice ?? 0, selectedAddOns: [], intendedUse: "personal" });
+        const order: CommissionOrder = {
+          id: ctx.id("req"),
+          buyerId: "buyer-riley",
+          artistId: "luna",
+          serviceId: "anime-portrait",
+          status: "draft",
+          brief: "A quiet lantern-lit portrait of my original character. Keep communication on Arya.",
+          characterCount: 1,
+          intendedUse: "personal",
+          addOnIds: [],
+          deadline: "2026-09-20",
+          budget: 60,
+          references: [],
+          estimatedPrice: estimate,
+          price: estimate,
+          revisionLimit: service.revisions,
+          revisionsUsed: 0,
+          parentApprovalRequired: true,
+          parentApproved: false,
+          createdAt: ctx.now,
+          updatedAt: ctx.now,
+        };
+        const approvalId = ctx.id("pa");
+        const next = notify(
+          {
+            ...state,
+            personaId: "parent-preview",
+            orders: [order, ...state.orders],
+            parentApprovals: [{ id: approvalId, teenPersonaId: "buyer-riley", action: "submit-request", orderId: order.id, status: "pending", createdAt: ctx.now }, ...state.parentApprovals],
+          },
+          { ...ctx, actorId: "parent-preview" },
+          [{ profileId: "parent-preview", title: "Parent approval needed", detail: "Riley submitted a commission request.", href: `/orders/${order.id}`, type: "parent-approval" }],
+        );
+        return { state: next, toast: "Loaded a pending teen request. Approve as parent preview.", href: `/orders/${order.id}` };
       }
       const promoted = reduceDemoState({ ...state, artistAvailability: { ...state.artistAvailability, maya: { availability: "limited", slots: 1 } } }, { type: "promote-waitlist", artistId: "maya", serviceId: "pet-sticker" }, ctx);
       return { ...promoted, toast: "Maya opened a slot and promoted the waitlist." };

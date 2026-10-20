@@ -17,6 +17,7 @@ import { CreatedArtistWork } from "@/features/studio/created-artist-work";
 import { CreatedArtistPosts } from "@/features/studio/created-artist-posts";
 import { CreatedArtistServices } from "@/features/studio/created-artist-services";
 import { ReviewList } from "@/features/reviews/review-list";
+import { ViewTracker } from "@/features/demo/view-tracker";
 
 const tabs: { id: ArtistProfileTab; label: string }[] = [
   { id: "portfolio", label: "Portfolio" },
@@ -43,6 +44,7 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
 
   return (
     <div>
+      <ViewTracker name="artist_profile_viewed" payload={{ artistId: artist.id }} />
       <section className="border-b border-black/5 bg-[#f3efe8]">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">

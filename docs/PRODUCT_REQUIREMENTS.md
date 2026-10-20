@@ -143,6 +143,7 @@ Instrumentation events should include `artwork_viewed`, `artist_profile_viewed`,
 | `/studio` | Artist dashboard | Existing shell; build |
 | `/studio/services` | Service and availability management | Build |
 | `/saved` | Saved artwork and artists | Build |
+| `/settings` | Locked teen safety defaults; parent approvals | Demo |
 | `/notifications` | Notification center | Build |
 
 ## 8. Core experience requirements

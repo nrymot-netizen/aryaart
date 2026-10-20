@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { artists, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
+import { artists, artworks, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
 import { getChallenge } from "@/data/seed-challenges";
 import { ArtworkStage } from "@/features/artwork/artwork-identity";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { TryBriefButton } from "@/features/challenges/try-brief-button";
+import { drawBackPairHref, findDemoArtwork, pairForReply, pairsForSource } from "@/lib/domain/draw-back";
 import { ArtworkCard } from "@/components/artwork-card";
 import { ArtworkMedia } from "@/components/artwork-media";
 import { StatusPill } from "@/components/status-pill";
@@ -13,6 +14,7 @@ import { ProtectedAccountNotice } from "@/components/safety/protected-account-no
 import { formatDate, subjectLabel } from "@/lib/utils";
 import { entryForArtwork } from "@/lib/domain/challenges";
 import { useDemo } from "@/features/demo/demo-provider";
+import { ViewTracker } from "@/features/demo/view-tracker";
 import type { Artist, Artwork } from "@/types";
 
 export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwork; artist: Artist; related?: Artwork[] }) {
@@ -21,8 +23,11 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
   const primaryService = getArtistServices(artist.id)[0];
   const challengeEntry = entryForArtwork(state.challengeEntries ?? [], artwork.id);
   const challenge = challengeEntry ? getChallenge(challengeEntry.challengeId) : undefined;
+  const replyPair = pairForReply(state.drawBacks ?? [], artwork.id);
+  const replies = pairsForSource(state.drawBacks ?? [], artwork.id);
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <ViewTracker name="artwork_viewed" payload={{ artworkId: artwork.id }} />
       <Link href="/" className="text-sm font-bold text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">← Discover</Link>
       <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
         <ArtworkStage artwork={artwork} artistName={artist.displayName} />
@@ -47,6 +52,35 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">Entered {challenge.title}</p>
               <p className="mt-2 text-sm leading-6 text-black/60">{challenge.brief}</p>
               <div className="mt-4"><TryBriefButton challenge={challenge} /></div>
+            </div>
+          )}
+          {replyPair && (
+            <div className="mt-6 rounded-3xl border border-plum/15 bg-mist/60 p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">This is a draw-back</p>
+              <p className="mt-2 text-sm leading-6 text-black/60">Both replays play together on the pair page.</p>
+              <Link href={drawBackPairHref(replyPair.id)} className="mt-4 inline-flex min-h-11 items-center font-bold text-plum">Watch the pair</Link>
+            </div>
+          )}
+          {replies.length > 0 && (
+            <div className="mt-6">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">Drawn back</p>
+              <ul className="mt-3 space-y-2">
+                {replies.map((pair) => {
+                  const reply = findDemoArtwork(state.createdArtworks, artworks, pair.replyArtworkId);
+                  if (!reply) return null;
+                  return (
+                    <li key={pair.id}>
+                      <Link href={drawBackPairHref(pair.id)} className="flex items-center gap-3 rounded-2xl bg-white p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">
+                        <ArtworkMedia src={reply.image} alt="" width={56} height={70} className="h-14 w-11 rounded-xl object-cover" />
+                        <span>
+                          <strong className="block">{reply.title}</strong>
+                          <span className="text-sm text-black/50">Watch both replays</span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
           <div className="mt-8 rounded-3xl border border-black/[0.07] bg-white p-5">

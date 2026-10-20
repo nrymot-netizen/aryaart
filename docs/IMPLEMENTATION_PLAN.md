@@ -213,8 +213,8 @@ Do not use scattered `useState` as the authoritative order state. Use a single c
 | 6 Waitlists, notifications, polish | Connected supporting systems | Shipped enough to demo; polish is ongoing |
 | 7 Supabase | Shared backend | **Not started** — after UX validation |
 | 8 License + identity A | Copy + replay/share/proof | **Shipped** |
-| 9 Challenges | Human-only brief grid | **Next** |
-| 10 Process stories | Dual opt-in unboxing | After 9 |
+| 9 Challenges | Human-only brief grid | **Shipped** |
+| 10 Process stories | Dual opt-in unboxing | **Shipped** |
 
 ### Phase 0 — Foundation hardening
 

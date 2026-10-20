@@ -5,6 +5,7 @@ import { ArtistRail, DiscoverHero, DiscoverSomeoneNew, FilteredDiscoverResults, 
 import { DemoCreatedFeed } from "@/features/discovery/demo-created-feed";
 import { DiscoverChallenge } from "@/features/challenges/discover-challenge";
 import { DiscoverProcessStories } from "@/features/process/process-story-card";
+import { DiscoverDrawBacks } from "@/features/artwork/discover-draw-backs";
 import { searchCatalog } from "@/lib/dal/catalog";
 import { artistsAcceptingCommissions, artUnderBudget, discoverSomeoneNew, emergingArtists, hasActiveFilters, newArtwork, parseDiscoverySearchParams, rankDiscoveryCandidates, trendingStyles } from "@/lib/domain/discovery";
 
@@ -18,6 +19,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     <div>
       <DiscoverHero><SearchFilters filters={filters} /></DiscoverHero>
       {!filteredMode && <DiscoverChallenge />}
+      {!filteredMode && <DiscoverDrawBacks />}
       {!filteredMode && <DiscoverProcessStories />}
       <DemoCreatedFeed filters={filteredMode ? filters : undefined} />
       {filteredMode ? (

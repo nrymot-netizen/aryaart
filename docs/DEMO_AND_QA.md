@@ -35,9 +35,10 @@ Time box: about 10 minutes.
 
 1. **SketchMaya · Artist** — protected indicator, no exact age.
 2. In an order workspace, try a message with an email or phone. Send is blocked with the product string from PRD §9.
-3. **Parent preview** can complete a pending simulated approval when one exists.
+3. **Parent preview** can complete a pending simulated approval when one exists. Empty Orders as Parent preview can **Load a pending teen request**. Riley · Buyer submits into draft until that approval.
 4. First visit shows a 13+ notice that is not verification.
 5. Order chrome includes Report, Block, and Leave/cancel. Reviews include Report and Hide.
+6. `/settings` shows default protections. Teen accounts cannot turn them off.
 
 Canvas/image side channels are still a known bypass; do not mark production T&S complete.
 
@@ -76,6 +77,13 @@ Never: “You own the art.” Never: “You own the NFT.”
 - After both opt in, Discover shows **Sketch to final** and `/process/order-luna-first-paid` has stills (optional final replay). No brief, messages, or references.
 - Opting out unpublishes.
 - Completing a Maya order does not auto-post. Caption with an email is blocked.
+
+## Identity D — draw-back
+
+- Discover shows **Watch it get drawn. Draw back.** Seeded pair: lantern study + paper lantern.
+- `/art/lantern-study` has **Draw back**. Opens `/create/draw?back=lantern-study` with a ghost still. Uploads hidden.
+- Publish as Luna or Maya → `/draw-back/[id]` plays both replays. Request CTAs stay on the artists. No comments. No DMs.
+- Upload-only work cannot be a source or a reply.
 
 ## Commands
 

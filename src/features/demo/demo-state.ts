@@ -1,9 +1,10 @@
-import type { AccountType, AnalyticsEvent, Artwork, Availability, ChallengeEntry, CommissionOrder, CommissionService, DemoFile, DrawingDraft, LedgerEntry, Milestone, Notification, OrderBlock, OrderMessage, OrderReport, ParentApproval, PersonaRole, Post, ProcessStory, ProcessStoryConsent, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
+import type { AccountType, AnalyticsEvent, Artwork, Availability, ChallengeEntry, CommissionOrder, CommissionService, DemoFile, DrawBackPair, DrawingDraft, LedgerEntry, Milestone, Notification, OrderBlock, OrderMessage, OrderReport, ParentApproval, PersonaRole, Post, ProcessStory, ProcessStoryConsent, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
 import { seedDemoNotifications, seedLedger, seedMessages, seedMilestones, seedOrders, seedTimeline } from "@/data/seed-orders";
 import { seedWaitlists } from "@/data/mock-data";
 import { defaultDemoPersona } from "@/features/demo/demo-personas";
 import { seedLanternArtwork, seedLanternLog, seedLanternPost } from "@/data/seed-lantern";
 import { seedChallengeEntries, seedPaperLanternArtwork, seedPaperLanternLog, seedPaperLanternPost } from "@/data/seed-challenges";
+import { seedDrawBacks } from "@/data/seed-draw-back";
 import { seedLunaFinalFile, seedLunaFinalLog, seedLunaSketchFile } from "@/data/seed-process-story";
 import type { ProcessLog } from "@/lib/domain/process-log";
 
@@ -41,6 +42,7 @@ export interface DemoPersistedState {
   processStoryConsents: ProcessStoryConsent[];
   processStories: ProcessStory[];
   drawingDrafts: DrawingDraft[];
+  drawBacks: DrawBackPair[];
 }
 
 export function createDemoState(personaId = defaultDemoPersona.id): DemoPersistedState {
@@ -82,6 +84,7 @@ export function createDemoState(personaId = defaultDemoPersona.id): DemoPersiste
     processStoryConsents: [],
     processStories: [],
     drawingDrafts: [],
+    drawBacks: seedDrawBacks.map((item) => ({ ...item })),
   };
 }
 
@@ -149,6 +152,7 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       processStoryConsents: Array.isArray(parsed.processStoryConsents) ? parsed.processStoryConsents : [],
       processStories: Array.isArray(parsed.processStories) ? parsed.processStories : [],
       drawingDrafts: Array.isArray(parsed.drawingDrafts) ? parsed.drawingDrafts : [],
+      drawBacks: withSeedItems(Array.isArray(parsed.drawBacks) ? parsed.drawBacks : fallback.drawBacks, seedDrawBacks.map((item) => ({ ...item }))),
     };
   } catch {
     return fallback;

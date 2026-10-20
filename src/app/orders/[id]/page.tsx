@@ -53,10 +53,15 @@ export default function OrderWorkspacePage() {
   const visibleMessages = viewerBlocked
     ? messages.filter((item) => item.kind === "system" || item.senderId !== otherPartyId)
     : messages;
+  const pendingApproval = state.parentApprovals.find((item) => item.orderId === order.id && item.status === "pending");
   const canCancel = Boolean((isBuyer || isArtist) && getNextOrderStatus(order.status, "cancel", persona.role));
 
   if (!participant) {
     return <div className="mx-auto max-w-3xl px-4 py-24 text-center"><h1 className="text-2xl font-bold">This workspace is private</h1><p className="mt-2 text-black/50">Only the buyer and artist on this order can enter.</p></div>;
+  }
+
+  if (isArtist && order.status === "draft") {
+    return <div className="mx-auto max-w-3xl px-4 py-24 text-center"><h1 className="text-2xl font-bold">This request isn’t with you yet</h1><p className="mt-2 text-black/50">Simulated parent approval is still pending.</p><Link href="/orders" className="mt-4 inline-block font-bold text-plum">Back to orders</Link></div>;
   }
 
   const send = () => {
@@ -88,6 +93,10 @@ export default function OrderWorkspacePage() {
       </div>
 
       {next && <div className="mt-6 rounded-3xl bg-ink px-5 py-4 text-white"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#c7b4ff]">Next required action</p><p className="mt-1 text-lg font-bold">{next.title}</p><p className="text-sm text-white/70">{next.detail}</p></div>}
+      {isBuyer && order.status === "draft" && <p className="mt-4 rounded-3xl bg-mist px-5 py-4 text-sm text-black/60">Waiting on simulated parent approval. Switch to Parent preview to complete this checkpoint.</p>}
+      {persona.role === "parent-preview" && pendingApproval && (
+        <Button className="mt-5" onClick={() => dispatch({ type: "parent-approve", approvalId: pendingApproval.id })}>Approve as parent</Button>
+      )}
       {protectedThread && <div className="mt-4"><ProtectedAccountNotice compact /></div>}
       {(isBuyer || isArtist) && (
         <div className="mt-4 flex flex-wrap gap-2">

@@ -36,6 +36,7 @@ export default function CheckoutPage() {
       <div className="mt-5 rounded-3xl bg-mist p-4 text-sm">Demo payment method · Arya sandbox · **** 0000</div>
       <p className="mt-3 text-xs leading-5 text-black/45">Arya does not ship physical goods in this demo. Checkout is digital files plus a license. The artist keeps the copyright.</p>
       {persona.accountType === "protected-teen" && <div className="mt-4"><ProtectedAccountNotice /></div>}
+      {pending && persona.role === "buyer" && persona.accountType === "protected-teen" && <p className="mt-4 rounded-3xl bg-mist px-4 py-3 text-sm text-black/60">Waiting on simulated parent approval. Switch to Parent preview to complete this checkpoint.</p>}
       {pending && persona.role === "parent-preview" && <Button className="mt-6 w-full" onClick={() => dispatch({ type: "parent-approve", approvalId: pending.id })}>Approve as parent</Button>}
       <Button className="mt-6 w-full" onClick={() => dispatch({ type: "buyer-respond", orderId: order.id, action: "complete-checkout" })} disabled={persona.id !== order.buyerId || order.status !== "payment-required"}>Complete demo checkout</Button>
     </div>

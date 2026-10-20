@@ -36,5 +36,6 @@ describe("demo persistence helpers", () => {
     expect(parsed.files.some((item) => item.id === "file-luna-first-final")).toBe(true);
     expect(parsed.processLogs.some((item) => item.id === "plog-file-luna-first-final")).toBe(true);
     expect(Array.isArray(parsed.processStories)).toBe(true);
+    expect(parsed.drawBacks.some((item) => item.id === "dback-lantern-paper")).toBe(true);
   });
 });

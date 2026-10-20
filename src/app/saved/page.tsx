@@ -1,7 +1,7 @@
 "use client";
 
 import { BookmarkSimple, Heart } from "@phosphor-icons/react";
-import { artists, artworks } from "@/data/mock-data";
+import { artists, artworks, getArtist } from "@/data/mock-data";
 import { ArtworkCard } from "@/components/artwork-card";
 import { ArtistCard } from "@/components/artist-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -10,7 +10,10 @@ import { useDemo } from "@/features/demo/demo-provider";
 
 export default function SavedPage() {
   const { state } = useDemo();
-  const savedArt = artworks.filter((artwork) => state.savedArtworkIds.includes(artwork.id));
+  const savedArt = [
+    ...artworks.filter((artwork) => state.savedArtworkIds.includes(artwork.id)),
+    ...state.createdArtworks.filter((artwork) => state.savedArtworkIds.includes(artwork.id)),
+  ];
   const savedArtists = artists.filter((artist) => state.savedArtistIds.includes(artist.id));
 
   return (
@@ -21,7 +24,7 @@ export default function SavedPage() {
           <h2 className="font-[family-name:var(--font-display)] text-3xl">Saved artwork</h2>
           <div className="mt-6">
             {savedArt.length ? <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">{savedArt.map((artwork) => {
-              const artist = artists.find((item) => item.id === artwork.artistId);
+              const artist = artists.find((item) => item.id === artwork.artistId) ?? getArtist(artwork.artistId);
               return artist ? <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} /> : null;
             })}</div> : <EmptyState icon={Heart} title="No saved artwork yet" description="Tap the heart on a piece to keep it here." />}
           </div>

@@ -10,10 +10,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageIntro } from "@/components/page-intro";
 
 export default function OrdersPage() {
-  const { state, persona } = useDemo();
+  const { state, persona, dispatch } = useDemo();
   const [filter, setFilter] = useState<"all" | "active" | "done">("all");
   const mine = state.orders.filter((order) => {
-    if (persona.role === "artist") return order.artistId === persona.artistId;
+    if (persona.role === "artist") return order.artistId === persona.artistId && order.status !== "draft";
     if (persona.role === "parent-preview") return order.parentApprovalRequired;
     return order.buyerId === persona.id;
   });
@@ -31,7 +31,11 @@ export default function OrdersPage() {
           {(["all", "active", "done"] as const).map((item) => <button key={item} onClick={() => setFilter(item)} className={`rounded-full px-4 py-2 text-sm font-semibold ${filter === item ? "bg-ink text-white" : "bg-white"}`}>{item}</button>)}
         </div>
         {visible.length === 0 ? (
+          persona.role === "parent-preview" ? (
+            <EmptyState icon={Receipt} title="No teen requests waiting" description="Load a Riley request, or have Riley submit one. Approvals are simulated." action={{ label: "Load a pending teen request", onClick: () => dispatch({ type: "load-scenario", scenario: "parent-approval" }) }} />
+          ) : (
           <EmptyState icon={Receipt} title="No orders in this view" description="Request a LunaLines portrait to walk the full demo, or switch personas to see the other side." action={{ label: "Request LunaLines", onClick: () => { window.location.href = "/commissions/anime-portrait/request"; } }} />
+          )
         ) : (
           <div className="space-y-3">
             {visible.map((order) => {

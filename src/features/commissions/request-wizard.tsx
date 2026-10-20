@@ -13,6 +13,7 @@ import { DrawingStudio } from "@/features/canvas/drawing-studio";
 import { drawingToDemoFile } from "@/lib/domain/canvas";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
 import { LicenseNotice } from "@/features/license/license-notice";
+import { ViewTracker } from "@/features/demo/view-tracker";
 import { evaluateContactFields, orderIsProtectedThread } from "@/lib/domain/safety";
 import { StatusPill } from "@/components/status-pill";
 
@@ -108,6 +109,7 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
 
   return (
     <form onSubmit={submit} className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_320px]">
+      <ViewTracker name="request_started" payload={{ serviceId: service.id }} />
       <div>
         <Link href={`/commissions/${service.id}`} className="text-sm font-bold text-plum">← {service.title}</Link>
         <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl sm:text-6xl">Request this commission</h1>
@@ -145,6 +147,7 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
           <div className="rounded-3xl bg-white p-5 text-sm leading-6"><strong>Review:</strong> {brief || "No brief yet"} · {characterCount} character{characterCount > 1 ? "s" : ""} · due {deadline} · estimate ${estimate}</div>
           <LicenseNotice intendedUse={intendedUse} artistName={artist.displayName} />
           {artist.accountType === "protected-teen" && <ProtectedAccountNotice />}
+          {persona.accountType === "protected-teen" && artist.accountType !== "protected-teen" && <ProtectedAccountNotice />}
         </div>}
 
         {error && <p className="mt-4 text-sm font-semibold text-red-600" role="alert">{error}</p>}

@@ -237,6 +237,13 @@ export interface ChallengeEntry {
   seedSaves: number;
 }
 
+export interface DrawBackPair {
+  id: string;
+  sourceArtworkId: string;
+  replyArtworkId: string;
+  publishedAt: string;
+}
+
 export interface ProcessStoryConsent {
   id: string;
   orderId: string;

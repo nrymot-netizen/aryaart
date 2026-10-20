@@ -14,6 +14,8 @@ export const IDENTITY_EVENTS = [
   "try_brief_clicked",
   "process_story_opt_in",
   "process_story_published",
+  "draw_back_started",
+  "draw_back_published",
 ] as const;
 
 export type IdentityEventName = (typeof IDENTITY_EVENTS)[number];
@@ -39,5 +41,6 @@ export function firstPaidPiece(orders: CommissionOrder[], artistId: string) {
 
 export function buyerDisplayName(buyerId: string) {
   if (buyerId === "buyer-alex") return "Alex";
+  if (buyerId === "buyer-riley") return "Riley";
   return "a buyer";
 }

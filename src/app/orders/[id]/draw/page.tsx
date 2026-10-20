@@ -10,6 +10,7 @@ import { drawingToDemoFile } from "@/lib/domain/canvas";
 import { createDraftId, drawingDraftFor } from "@/lib/domain/drawing-drafts";
 import { Button } from "@/components/ui/button";
 import { LicenseNotice } from "@/features/license/license-notice";
+import { ViewTracker } from "@/features/demo/view-tracker";
 
 export default function OrderDrawPage() {
   return <Suspense fallback={<div className="px-4 py-16 text-sm text-black/50">Loading the canvas…</div>}><OrderDrawForm /></Suspense>;
@@ -65,6 +66,7 @@ function OrderDrawForm() {
 
   return (
     <div className="px-3 py-4 sm:px-5">
+      <ViewTracker name="canvas_opened" payload={{ route: `order-${kind}` }} />
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <Link href={`/orders/${order.id}`} className="text-sm font-bold text-plum">← {service?.title ?? "Workspace"}</Link>

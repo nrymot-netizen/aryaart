@@ -11,6 +11,7 @@ import { ProtectedAccountNotice } from "@/components/safety/protected-account-no
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArtworkMedia } from "@/components/artwork-media";
 import { RequestWizard } from "@/features/commissions/request-wizard";
+import { ViewTracker } from "@/features/demo/view-tracker";
 
 export function CreatedServicePage({ id }: { id: string }) {
   const { state, hydrated } = useDemo();
@@ -31,6 +32,7 @@ export function CreatedServicePage({ id }: { id: string }) {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_380px]">
+      <ViewTracker name="service_selected" payload={{ serviceId: service.id }} />
       <div>
         <Link href={`/artists/${artist.id}`} className="text-sm font-bold text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">← @{artist.username}</Link>
         <h1 className="mt-5 font-[family-name:var(--font-display)] text-5xl leading-none sm:text-7xl">{service.title}</h1>

@@ -7,6 +7,7 @@ import { StatusPill } from "@/components/status-pill";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
 import { CreatedServicePage } from "@/features/commissions/created-service-page";
+import { ViewTracker } from "@/features/demo/view-tracker";
 
 export default async function ServicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -18,6 +19,7 @@ export default async function ServicePage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_380px]">
+      <ViewTracker name="service_selected" payload={{ serviceId: service.id }} />
       <div>
         <Link href={`/artists/${artist.id}`} className="text-sm font-bold text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">← @{artist.username}</Link>
         <h1 className="mt-5 font-[family-name:var(--font-display)] text-5xl leading-none sm:text-7xl">{service.title}</h1>
