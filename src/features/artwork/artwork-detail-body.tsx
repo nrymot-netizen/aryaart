@@ -26,14 +26,14 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
   const replyPair = pairForReply(state.drawBacks ?? [], artwork.id);
   const replies = pairsForSource(state.drawBacks ?? [], artwork.id);
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
       <ViewTracker name="artwork_viewed" payload={{ artworkId: artwork.id }} />
       <Link href="/" className="text-sm font-bold text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">← Discover</Link>
       <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
         <ArtworkStage artwork={artwork} artistName={artist.displayName} />
         <div>
           {artwork.isNew && <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">New</p>}
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-5xl leading-none sm:text-6xl">{artwork.title}</h1>
+          <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-6xl">{artwork.title}</h1>
           <Link href={`/artists/${artist.id}`} className="mt-4 inline-flex items-center gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">
             <ArtworkMedia src={artist.avatar} alt="" width={48} height={48} className="size-12 rounded-2xl object-cover" />
             <span><strong className="block">@{artist.username}</strong><span className="text-sm text-black/50">{artist.specialty}</span></span>

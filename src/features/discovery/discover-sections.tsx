@@ -11,13 +11,13 @@ export function DiscoverHero({ children }: { children: React.ReactNode }) {
     <section className="relative overflow-hidden border-b border-black/5 bg-[#f4f0ea]">
       <div className="absolute -left-24 -top-36 size-72 rounded-full bg-[#f1b6ad]/55 blur-3xl" />
       <div className="absolute -right-20 bottom-0 size-80 rounded-full bg-[#cfc0ef]/55 blur-3xl" />
-      <div className="relative mx-auto max-w-[1480px] px-4 py-12 sm:px-6 sm:py-20 lg:px-10">
+      <div className="relative mx-auto max-w-[1480px] px-4 py-8 sm:px-6 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-plum ring-1 ring-black/5"><Sparkle size={14} weight="fill" />Independent art, thoughtfully discovered</div>
-          <h1 className="text-balance font-[family-name:var(--font-display)] text-5xl leading-[0.94] tracking-[-0.03em] sm:text-7xl lg:text-[5.8rem]">Find art that feels<br className="hidden sm:block" /> like <em className="text-plum">you.</em></h1>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-black/60 sm:text-lg">Discover artists by what they create—not by how many followers they have. Commission something completely personal.</p>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-plum ring-1 ring-black/5 sm:mb-5"><Sparkle size={14} weight="fill" />Independent art, thoughtfully discovered</div>
+          <h1 className="text-balance font-[family-name:var(--font-display)] text-[2.4rem] leading-[0.94] tracking-[-0.03em] sm:text-7xl lg:text-[5.8rem]">Find art that feels<br className="hidden sm:block" /> like <em className="text-plum">you.</em></h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-black/60 sm:mt-6 sm:text-lg">Discover artists by what they create—not by how many followers they have. Commission something completely personal.</p>
         </div>
-        <div className="mt-9">{children}</div>
+        <div className="mt-6 sm:mt-9">{children}</div>
       </div>
     </section>
   );
@@ -39,7 +39,7 @@ export function ArtistRail({ title, eyebrow, artists, href }: { title: string; e
     <section className="mx-auto max-w-[1480px] px-4 py-10 sm:px-6 lg:px-10">
       <div className="flex items-end justify-between gap-4">
         <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">{eyebrow}</p><h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl sm:text-4xl">{title}</h2></div>
-        {href && <Link href={href} className="hidden text-sm font-bold text-plum sm:block">See all artists →</Link>}
+        {href && <Link href={href} className="shrink-0 text-sm font-bold text-plum">See all →</Link>}
       </div>
       <div className="no-scrollbar -mx-4 mt-6 flex gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-4">{artists.map((artist) => <ArtistCard key={artist.id} artist={artist} />)}</div>
     </section>
@@ -61,10 +61,10 @@ export function DiscoverSomeoneNew({ artists }: { artists: Artist[] }) {
   const featured = artists[0];
   return (
     <section className="mx-auto mb-10 max-w-[1400px] px-4 sm:px-6">
-      <div className="overflow-hidden rounded-4xl bg-ink px-6 py-12 text-white sm:px-12 sm:py-16">
+      <div className="overflow-hidden rounded-[2rem] bg-ink px-5 py-10 text-white sm:rounded-4xl sm:px-12 sm:py-16">
         <div className="max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#c7b4ff]">Discover someone new</p>
-          <h2 className="mt-3 font-[family-name:var(--font-display)] text-4xl leading-tight sm:text-6xl">Great art can come from anywhere.</h2>
+          <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl leading-tight sm:text-6xl">Great art can come from anywhere.</h2>
           <p className="mt-4 max-w-lg text-white/60">We rotate lower-exposure artists into this slot using fit, availability, and freshness—not follower counts.</p>
           {featured && <Link href={`/artists/${featured.id}`} className="mt-7 inline-flex rounded-full bg-white px-6 py-3 text-sm font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Meet @{featured.username}</Link>}
         </div>

@@ -21,7 +21,7 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
       <Link href={`/orders/${order.id}`} className="text-sm font-bold text-plum">← Order</Link>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-coral">Simulated checkout</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-5xl">Pay in demo mode</h1>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-5xl">Pay in demo mode</h1>
       <p className="mt-3 text-black/55">No real card is collected. This records a simulated payment and opens the workspace.</p>
       <div className="mt-8 space-y-3 rounded-4xl border border-black/[0.07] bg-white p-6 text-sm">
         <p className="flex justify-between"><span>Artist</span><strong>@{artist?.username}</strong></p>

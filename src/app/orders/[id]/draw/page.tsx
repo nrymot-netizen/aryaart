@@ -65,12 +65,12 @@ function OrderDrawForm() {
   }
 
   return (
-    <div className="px-3 py-4 sm:px-5">
+    <div className="min-w-0 px-2 pb-2 pt-2 sm:px-5 sm:py-4">
       <ViewTracker name="canvas_opened" payload={{ route: `order-${kind}` }} />
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
+        <div className="min-w-0">
           <Link href={`/orders/${order.id}`} className="text-sm font-bold text-plum">← {service?.title ?? "Workspace"}</Link>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-4xl">{title} desk</h1>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl">{title} desk</h1>
         </div>
         <Button variant="ghost" onClick={() => history.back()}>Cancel</Button>
       </div>

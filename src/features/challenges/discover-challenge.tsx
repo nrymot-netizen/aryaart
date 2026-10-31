@@ -18,11 +18,11 @@ export function DiscoverChallenge() {
   ).slice(0, 4);
   const artworks = ranked.map((entry) => ({ entry, artwork: state.createdArtworks.find((item) => item.id === entry.artworkId) })).filter((item): item is { entry: typeof ranked[number]; artwork: NonNullable<(typeof state.createdArtworks)[number]> } => Boolean(item.artwork));
   return (
-    <section className="mx-auto max-w-[1480px] px-4 pb-16 sm:px-6 lg:px-10">
+    <section className="mx-auto max-w-[1480px] px-4 pb-10 sm:px-6 sm:pb-16 lg:px-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">Human-only challenge</p>
-          <h2 className="mt-1 flex items-center gap-2 font-[family-name:var(--font-display)] text-3xl sm:text-4xl"><Lamp size={28} className="text-plum" />{challenge.title}</h2>
+          <h2 className="mt-1 flex items-center gap-2 font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl"><Lamp size={26} className="text-plum" />{challenge.title}</h2>
           <p className="mt-3 max-w-2xl text-base leading-7 text-black/60">{challenge.brief}</p>
         </div>
         <div className="flex flex-wrap gap-2">

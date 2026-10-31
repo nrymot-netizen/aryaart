@@ -41,14 +41,14 @@ export function SearchFilters({ filters, action = "/", showAdvanced = false }: {
 
   return (
     <div>
-      <form onSubmit={onSearch} className="mx-auto flex max-w-2xl items-center gap-3 rounded-2xl bg-white p-2 pl-4 shadow-card ring-1 ring-black/5" role="search">
+      <form onSubmit={onSearch} className="mx-auto flex max-w-2xl items-center gap-2 rounded-2xl bg-white p-1.5 pl-3 shadow-card ring-1 ring-black/5 sm:gap-3 sm:p-2 sm:pl-4" role="search">
         <MagnifyingGlass size={22} className="shrink-0 text-black/40" />
         <input value={query} onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none sm:text-base" placeholder="Search styles, subjects, or artists" aria-label="Search artwork" />
         <Button type="submit" className="hidden sm:inline-flex px-4">Search</Button>
-        <a href={`/search${serializeDiscoverySearchParams({ ...filters, q: query.trim() }) ? `?${serializeDiscoverySearchParams({ ...filters, q: query.trim() })}` : ""}`} className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum" aria-label="Open full filters"><SlidersHorizontal size={20} /></a>
+        <a href={`/search${serializeDiscoverySearchParams({ ...filters, q: query.trim() }) ? `?${serializeDiscoverySearchParams({ ...filters, q: query.trim() })}` : ""}`} className="grid size-11 shrink-0 place-items-center rounded-xl bg-ink text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum" aria-label="Open full filters"><SlidersHorizontal size={20} /></a>
       </form>
-      <div className="no-scrollbar mx-auto mt-5 flex max-w-4xl gap-2 overflow-x-auto pb-1 sm:justify-center">
-        {chips.map((chip) => <button key={chip} type="button" onClick={() => selectChip(chip)} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum ${activeChip === chip ? "bg-ink text-white" : "bg-white/70 text-black/60 hover:bg-white"}`}>{chip}</button>)}
+      <div className="no-scrollbar mx-auto mt-4 flex max-w-4xl gap-2 overflow-x-auto pb-1 sm:mt-5 sm:justify-center">
+        {chips.map((chip) => <button key={chip} type="button" onClick={() => selectChip(chip)} className={`min-h-11 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum ${activeChip === chip ? "bg-ink text-white" : "bg-white/70 text-black/60 hover:bg-white"}`}>{chip}</button>)}
       </div>
       {showAdvanced && (
         <div className="mx-auto mt-8 max-w-4xl rounded-3xl border border-black/[0.07] bg-white p-5">

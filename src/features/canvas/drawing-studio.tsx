@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useCallback, useEffect, useId, useImperativeHandle, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type WheelEvent as ReactWheelEvent } from "react";
-import { ArrowClockwise, ArrowCounterClockwise, ArrowsOut, Drop, Eraser, Eye, Eyedropper, LockSimple, Minus, PaintBucket, PencilSimple, PenNib, Plus, Square, Trash, WaveSine } from "@phosphor-icons/react";
+import { ArrowClockwise, ArrowCounterClockwise, ArrowsOut, Drop, Eraser, Eye, Eyedropper, LockSimple, Minus, PaintBucket, Palette, PaperPlaneTilt, PencilSimple, PenNib, Plus, Sliders, Square, Stack, Trash, WaveSine } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   BRUSH_COLORS,
@@ -17,6 +17,7 @@ import {
   clampBrushSize,
   clampUnit,
   clampZoom,
+  fitCanvasZoom,
   createLayer,
   emptyDrawingMessage,
   estimateDataUrlBytes,
@@ -95,7 +96,9 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
   const [stabilizer, setStabilizer] = useState(0.35);
   const [symmetry, setSymmetry] = useState(false);
   const [paper, setPaper] = useState<string>(bootDraft?.paperColor ?? PAPER_PRESETS[0].value);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(() => (typeof window === "undefined" ? 1 : fitCanvasZoom(window.innerWidth - 24)));
+  const [inspector, setInspector] = useState<"brush" | "color" | "layers" | "more">("brush");
+  const userZoomed = useRef(false);
   const [opCount, setOpCount] = useState(0);
   const [redoCount, setRedoCount] = useState(0);
   const [baked, setBaked] = useState(false);
@@ -492,10 +495,39 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const fitStage = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const pad = stage.clientWidth >= 1024 ? 32 : 8;
+    setZoom(fitCanvasZoom(stage.clientWidth - pad));
+  }, []);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const apply = () => {
+      if (!userZoomed.current) fitStage();
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [fitStage]);
+
+  const setManualZoom = (next: number | ((value: number) => number)) => {
+    userZoomed.current = true;
+    setZoom((value) => clampZoom(typeof next === "function" ? next(value) : next));
+  };
+
+  const resetFit = () => {
+    userZoomed.current = false;
+    fitStage();
+  };
+
   const onWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
     if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
-    setZoom((value) => clampZoom(value + (event.deltaY > 0 ? -0.1 : 0.1)));
+    setManualZoom((value) => value + (event.deltaY > 0 ? -0.1 : 0.1));
   };
 
   const exportDrawing = () => {
@@ -509,10 +541,11 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
 
   const cursor = tool === "fill" ? "cell" : tool === "eyedropper" ? "copy" : "crosshair";
   const selected = layers.find((layer) => layer.id === activeLayerId);
+  const panel = (id: typeof inspector) => `${inspector === id ? "block" : "hidden"} lg:block`;
 
   return (
-    <div className={compact ? "space-y-4" : "grid gap-4 lg:grid-cols-[72px_minmax(0,1fr)_18rem]"}>
-      <div role="radiogroup" aria-label="Studio tools" className={`flex gap-1 ${compact ? "flex-wrap rounded-full bg-white p-1 ring-1 ring-black/10" : "flex-col rounded-[1.6rem] bg-ink p-2 text-white"}`}>
+    <div className={compact ? "min-w-0 space-y-3" : "grid min-w-0 gap-3 lg:grid-cols-[72px_minmax(0,1fr)_18rem] lg:gap-4"}>
+      <div role="radiogroup" aria-label="Studio tools" className={`no-scrollbar flex gap-1 overflow-x-auto ${compact ? "flex-wrap rounded-full bg-white p-1 ring-1 ring-black/10" : "rounded-[1.2rem] bg-ink p-1.5 text-white lg:flex-col lg:rounded-[1.6rem] lg:p-2"}`}>
         {BRUSH_PRESETS.map((preset) => (
           <ToolButton key={preset.id} dark={!compact} active={tool === preset.id} label={preset.label} shortcut={String(BRUSH_PRESETS.findIndex((item) => item.id === preset.id) + 1)} onClick={() => selectBrush(preset.id)}>
             {preset.id === "pencil" ? <PencilSimple size={18} /> : preset.id === "ink" ? <PenNib size={18} /> : preset.id === "marker" ? <Square size={18} /> : <Drop size={18} />}
@@ -521,14 +554,14 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
         <ToolButton dark={!compact} active={tool === "eraser"} label="Eraser" shortcut="E" onClick={() => setTool("eraser")}><Eraser size={18} /></ToolButton>
         <ToolButton dark={!compact} active={tool === "fill"} label="Fill" shortcut="G" onClick={() => setTool("fill")}><PaintBucket size={18} /></ToolButton>
         <ToolButton dark={!compact} active={tool === "eyedropper"} label="Sample" shortcut="I" onClick={() => setTool("eyedropper")}><Eyedropper size={18} /></ToolButton>
-        <button type="button" onClick={() => setSymmetry((value) => !value)} className={`grid min-h-11 place-items-center rounded-2xl ${symmetry ? "bg-plum text-white" : compact ? "text-black/50" : "text-white/60 hover:bg-white/10"}`} aria-pressed={symmetry} aria-label="Vertical symmetry"><WaveSine size={18} /></button>
-        <button type="button" onClick={undo} disabled={!opCount} className={`grid min-h-11 place-items-center rounded-2xl disabled:opacity-30 ${compact ? "bg-white" : "hover:bg-white/10"}`} aria-label="Undo"><ArrowCounterClockwise size={18} /></button>
-        <button type="button" onClick={redo} disabled={!redoCount} className={`grid min-h-11 place-items-center rounded-2xl disabled:opacity-30 ${compact ? "bg-white" : "hover:bg-white/10"}`} aria-label="Redo"><ArrowClockwise size={18} /></button>
-        <button type="button" onClick={clearCanvas} className={`grid min-h-11 place-items-center rounded-2xl ${compact ? "bg-white" : "hover:bg-white/10"}`} aria-label="Clear canvas"><Trash size={18} /></button>
+        <button type="button" onClick={() => setSymmetry((value) => !value)} className={`grid min-h-11 min-w-11 place-items-center rounded-2xl ${symmetry ? "bg-plum text-white" : compact ? "text-black/50" : "text-white/60 hover:bg-white/10"}`} aria-pressed={symmetry} aria-label="Vertical symmetry"><WaveSine size={18} /></button>
+        <button type="button" onClick={undo} disabled={!opCount} className={`grid min-h-11 min-w-11 place-items-center rounded-2xl disabled:opacity-30 ${compact ? "bg-white" : "hover:bg-white/10"}`} aria-label="Undo"><ArrowCounterClockwise size={18} /></button>
+        <button type="button" onClick={redo} disabled={!redoCount} className={`grid min-h-11 min-w-11 place-items-center rounded-2xl disabled:opacity-30 ${compact ? "bg-white" : "hover:bg-white/10"}`} aria-label="Redo"><ArrowClockwise size={18} /></button>
+        <button type="button" onClick={clearCanvas} className={`grid min-h-11 min-w-11 place-items-center rounded-2xl ${compact ? "bg-white" : "hover:bg-white/10"}`} aria-label="Clear canvas"><Trash size={18} /></button>
       </div>
 
-      <div>
-        <div ref={stageRef} onWheel={onWheel} className={`overflow-auto rounded-[1.6rem] ${compact ? "ring-1 ring-black/10" : "max-h-[calc(100dvh-8rem)] bg-[#241f2b] p-4"}`}>
+      <div className="min-w-0">
+        <div ref={stageRef} onWheel={onWheel} className={`w-full min-w-0 overflow-auto overscroll-contain rounded-[1.2rem] lg:rounded-[1.6rem] ${compact ? "ring-1 ring-black/10" : "max-h-[min(62dvh,calc(100dvh-16rem))] bg-[#241f2b] p-1 sm:p-3 lg:max-h-[calc(100dvh-8rem)] lg:p-4"}`}>
           <div className="relative mx-auto origin-top" style={{ width: CANVAS_WIDTH * zoom, height: CANVAS_HEIGHT * zoom }}>
             <div className="absolute inset-0 overflow-hidden rounded-lg" style={{ background: paper }}>
               {ghostImage && <img src={ghostImage} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35" />}
@@ -549,46 +582,66 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
             </div>
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <button type="button" className="grid size-9 place-items-center rounded-full bg-white ring-1 ring-black/10" aria-label="Zoom out" onClick={() => setZoom((value) => clampZoom(value - 0.1))}><Minus size={14} /></button>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm sm:mt-3">
+          <button type="button" className="grid size-11 place-items-center rounded-full bg-white ring-1 ring-black/10" aria-label="Zoom out" onClick={() => setManualZoom((value) => value - 0.1)}><Minus size={14} /></button>
           <span className="w-12 text-center font-bold">{Math.round(zoom * 100)}%</span>
-          <button type="button" className="grid size-9 place-items-center rounded-full bg-white ring-1 ring-black/10" aria-label="Zoom in" onClick={() => setZoom((value) => clampZoom(value + 0.1))}><Plus size={14} /></button>
-          <button type="button" className="grid size-9 place-items-center rounded-full bg-white ring-1 ring-black/10" aria-label="Reset zoom" onClick={() => setZoom(1)}><ArrowsOut size={14} /></button>
-          <p id={liveId} className="text-black/50" aria-live="polite">{status}</p>
+          <button type="button" className="grid size-11 place-items-center rounded-full bg-white ring-1 ring-black/10" aria-label="Zoom in" onClick={() => setManualZoom((value) => value + 0.1)}><Plus size={14} /></button>
+          <button type="button" className="grid size-11 place-items-center rounded-full bg-white ring-1 ring-black/10" aria-label="Fit canvas to screen" onClick={resetFit}><ArrowsOut size={14} /></button>
+          <p id={liveId} className="min-w-0 flex-1 text-xs text-black/50 sm:text-sm" aria-live="polite">{status}</p>
         </div>
       </div>
 
-      <aside className="space-y-4 rounded-[1.6rem] bg-white p-4 ring-1 ring-black/[0.06]">
-        <section>
+      <aside className="space-y-3 rounded-[1.2rem] bg-white p-3 ring-1 ring-black/[0.06] sm:space-y-4 sm:rounded-[1.6rem] sm:p-4">
+        <div className="grid grid-cols-4 gap-1 lg:hidden" role="tablist" aria-label="Studio panels">
+          {([
+            ["brush", "Brush", Sliders],
+            ["color", "Color", Palette],
+            ["layers", "Layers", Stack],
+            ["more", "Publish", PaperPlaneTilt],
+          ] as const).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={inspector === id}
+              onClick={() => setInspector(id)}
+              className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-bold ${inspector === id ? "bg-ink text-white" : "bg-mist text-plum"}`}
+            >
+              <Icon size={16} />
+              {label}
+            </button>
+          ))}
+        </div>
+        <section className={panel("brush")}>
           <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">Brush</h2>
           <label className="mt-3 block text-sm font-bold">Size<input type="range" min={MIN_BRUSH_SIZE} max={MAX_BRUSH_SIZE} value={size} onChange={(event) => setSize(Number(event.target.value))} className="mt-1 w-full accent-plum" /></label>
           <label className="mt-3 block text-sm font-bold">Opacity<input type="range" min={0.08} max={1} step={0.02} value={opacity} onChange={(event) => setOpacity(clampUnit(Number(event.target.value)))} className="mt-1 w-full accent-plum" /></label>
           <label className="mt-3 block text-sm font-bold">Hardness<input type="range" min={0} max={1} step={0.02} value={hardness} onChange={(event) => setHardness(clampUnit(Number(event.target.value)))} className="mt-1 w-full accent-plum" /></label>
           <label className="mt-3 block text-sm font-bold">Stabilizer<input type="range" min={0} max={0.85} step={0.05} value={stabilizer} onChange={(event) => setStabilizer(Number(event.target.value))} className="mt-1 w-full accent-plum" /></label>
         </section>
-        <section>
+        <section className={panel("color")}>
           <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">Color</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             {[...recent, ...BRUSH_COLORS.map((item) => item.value).filter((item) => !recent.includes(item))].slice(0, 14).map((value) => (
-              <button key={value} type="button" aria-label={value} onClick={() => rememberColor(value)} className={`size-7 rounded-full ${color === value ? "ring-2 ring-ink ring-offset-2" : "ring-1 ring-black/15"}`} style={{ background: value }} />
+              <button key={value} type="button" aria-label={value} onClick={() => rememberColor(value)} className={`size-9 rounded-full sm:size-7 ${color === value ? "ring-2 ring-ink ring-offset-2" : "ring-1 ring-black/15"}`} style={{ background: value }} />
             ))}
-            <label className="grid size-7 place-items-center overflow-hidden rounded-full ring-1 ring-black/15"><span className="sr-only">Custom color</span><input type="color" value={color} onChange={(event) => rememberColor(event.target.value)} className="size-10 -translate-y-1 cursor-pointer border-0 bg-transparent p-0" /></label>
+            <label className="grid size-9 place-items-center overflow-hidden rounded-full ring-1 ring-black/15 sm:size-7"><span className="sr-only">Custom color</span><input type="color" value={color} onChange={(event) => rememberColor(event.target.value)} className="size-10 -translate-y-1 cursor-pointer border-0 bg-transparent p-0" /></label>
           </div>
           <div className="mt-3 flex flex-wrap gap-1">
             {PAPER_PRESETS.map((item) => (
-              <button key={item.id} type="button" onClick={() => setPaper(item.value)} className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${paper === item.value ? "bg-ink text-white" : "bg-mist text-plum"}`}>{item.label}</button>
+              <button key={item.id} type="button" onClick={() => setPaper(item.value)} className={`min-h-9 rounded-full px-3 py-1 text-[11px] font-bold ${paper === item.value ? "bg-ink text-white" : "bg-mist text-plum"}`}>{item.label}</button>
             ))}
           </div>
         </section>
-        <section>
+        <section className={panel("layers")}>
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">Layers</h2>
-            <button type="button" onClick={addLayer} disabled={layers.length >= MAX_LAYERS} className="grid size-8 place-items-center rounded-full bg-mist text-plum disabled:opacity-30" aria-label="Add layer"><Plus size={14} /></button>
+            <button type="button" onClick={addLayer} disabled={layers.length >= MAX_LAYERS} className="grid size-11 place-items-center rounded-full bg-mist text-plum disabled:opacity-30" aria-label="Add layer"><Plus size={14} /></button>
           </div>
           <ul className="mt-2 space-y-1">
             {[...layers].reverse().map((layer) => (
               <li key={layer.id}>
-                <button type="button" onClick={() => setActiveLayerId(layer.id)} className={`flex w-full items-center gap-2 rounded-2xl px-2 py-2 text-left text-sm ${layer.id === activeLayerId ? "bg-mist font-bold" : "hover:bg-black/[0.03]"}`}>
+                <button type="button" onClick={() => setActiveLayerId(layer.id)} className={`flex min-h-11 w-full items-center gap-2 rounded-2xl px-2 py-2 text-left text-sm ${layer.id === activeLayerId ? "bg-mist font-bold" : "hover:bg-black/[0.03]"}`}>
                   <span className="flex-1 truncate">{layer.name}</span>
                   <span className="text-[11px] text-black/40">{Math.round(layer.opacity * 100)}%</span>
                 </button>
@@ -598,26 +651,28 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
           <p className="mt-2 text-xs leading-5 text-black/45">{bootDraft ? "Draft restored in this browser. Undo starts from this still." : "Drafts save in this browser while you draw. Not a PSD round-trip."}</p>
           {selected && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => updateLayer(selected.id, { visible: !selected.visible })} className="grid size-9 place-items-center rounded-full bg-mist" aria-label="Toggle visibility"><Eye size={15} className={selected.visible ? "text-ink" : "text-black/30"} /></button>
-              <button type="button" onClick={() => updateLayer(selected.id, { locked: !selected.locked })} className="grid size-9 place-items-center rounded-full bg-mist" aria-label="Toggle lock"><LockSimple size={15} className={selected.locked ? "text-plum" : "text-black/30"} /></button>
-              <button type="button" onClick={() => moveLayer(selected.id, 1)} className="rounded-full bg-mist px-3 py-2 text-xs font-bold">Up</button>
-              <button type="button" onClick={() => moveLayer(selected.id, -1)} className="rounded-full bg-mist px-3 py-2 text-xs font-bold">Down</button>
-              <button type="button" onClick={() => removeLayer(selected.id)} disabled={layers.length === 1 || selected.id === "layer-1"} className="rounded-full bg-mist px-3 py-2 text-xs font-bold text-red-700 disabled:opacity-30">Delete</button>
+              <button type="button" onClick={() => updateLayer(selected.id, { visible: !selected.visible })} className="grid size-11 place-items-center rounded-full bg-mist" aria-label="Toggle visibility"><Eye size={15} className={selected.visible ? "text-ink" : "text-black/30"} /></button>
+              <button type="button" onClick={() => updateLayer(selected.id, { locked: !selected.locked })} className="grid size-11 place-items-center rounded-full bg-mist" aria-label="Toggle lock"><LockSimple size={15} className={selected.locked ? "text-plum" : "text-black/30"} /></button>
+              <button type="button" onClick={() => moveLayer(selected.id, 1)} className="min-h-11 rounded-full bg-mist px-3 text-xs font-bold">Up</button>
+              <button type="button" onClick={() => moveLayer(selected.id, -1)} className="min-h-11 rounded-full bg-mist px-3 text-xs font-bold">Down</button>
+              <button type="button" onClick={() => removeLayer(selected.id)} disabled={layers.length === 1 || selected.id === "layer-1"} className="min-h-11 rounded-full bg-mist px-3 text-xs font-bold text-red-700 disabled:opacity-30">Delete</button>
               <label className="block w-full text-xs font-bold">Opacity<input type="range" min={0.1} max={1} step={0.05} value={selected.opacity} onChange={(event) => updateLayer(selected.id, { opacity: Number(event.target.value) })} className="mt-1 w-full accent-plum" /></label>
             </div>
           )}
         </section>
-        {references.length > 0 && (
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">References</h2>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {references.map((item) => item.preview ? <img key={item.id} src={item.preview} alt={item.name} className="aspect-square w-full rounded-2xl object-cover" /> : <p key={item.id} className="text-xs">{item.name}</p>)}
-            </div>
-          </section>
-        )}
-        {sidebarExtra}
-        {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
-        {showAction && <Button onClick={exportDrawing} disabled={busy} className="w-full">{actionLabel}</Button>}
+        <div className={panel("more")}>
+          {references.length > 0 && (
+            <section>
+              <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-black/40">References</h2>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {references.map((item) => item.preview ? <img key={item.id} src={item.preview} alt={item.name} className="aspect-square w-full rounded-2xl object-cover" /> : <p key={item.id} className="text-xs">{item.name}</p>)}
+              </div>
+            </section>
+          )}
+          {sidebarExtra}
+          {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
+          {showAction && <Button onClick={exportDrawing} disabled={busy} className="mt-3 w-full">{actionLabel}</Button>}
+        </div>
       </aside>
     </div>
   );
@@ -632,7 +687,7 @@ function ToolButton({ active, dark, label, shortcut, onClick, children }: { acti
       aria-label={`${label}, shortcut ${shortcut}`}
       title={`${label} (${shortcut})`}
       onClick={onClick}
-      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-3 text-sm font-bold ${active ? "bg-plum text-white" : dark ? "text-white/70 hover:bg-white/10" : "text-black/55 hover:text-ink"}`}
+      className={`inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded-2xl px-3 text-sm font-bold ${active ? "bg-plum text-white" : dark ? "text-white/70 hover:bg-white/10" : "text-black/55 hover:text-ink"}`}
     >
       {children}
       <span className="sr-only">{label}</span>

@@ -7,7 +7,7 @@ export const ARYA_CANVAS_TOOL = "Arya Canvas";
 export const MIN_BRUSH_SIZE = 2;
 export const MAX_BRUSH_SIZE = 128;
 export const MAX_LAYERS = 8;
-export const MIN_ZOOM = 0.5;
+export const MIN_ZOOM = 0.25;
 export const MAX_ZOOM = 4;
 
 export type BrushKind = "pencil" | "ink" | "marker" | "airbrush";
@@ -97,6 +97,11 @@ export function clampUnit(value: number): number {
 
 export function clampZoom(value: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(value * 100) / 100));
+}
+
+export function fitCanvasZoom(availableWidth: number) {
+  if (availableWidth <= 0) return 1;
+  return clampZoom(availableWidth / CANVAS_WIDTH);
 }
 
 export function createLayer(index: number, id?: string): CanvasLayer {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   clampBrushSize,
   clampZoom,
+  fitCanvasZoom,
   createLayer,
   drawingToDemoFile,
   emptyDrawingMessage,
@@ -76,7 +77,9 @@ describe("canvas helpers", () => {
     expect(stabilizePoint({ x: 0, y: 0, p: 1 }, { x: 10, y: 0, p: 1 }, 0.5)).toEqual({ x: 5, y: 0, p: 1 });
     expect(mirrorPoint({ x: 120, y: 10, p: 1 }, 720).x).toBe(600);
     expect(clampZoom(9)).toBe(4);
-    expect(clampZoom(0.1)).toBe(0.5);
+    expect(clampZoom(0.1)).toBe(0.25);
+    expect(fitCanvasZoom(360)).toBe(0.5);
+    expect(fitCanvasZoom(288)).toBe(0.4);
     expect(createLayer(0).id).toBe("layer-1");
   });
 });

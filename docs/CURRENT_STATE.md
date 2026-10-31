@@ -15,7 +15,7 @@ This is a product-validation demo, not a production marketplace. Treat it as the
 | Artists | Profiles, tabs, rules, availability CTAs, waitlist |
 | Commissions | Services, request wizard (including buyer reference sketch), accept/counter/decline, simulated checkout |
 | Workspace | Order messages (no DMs), files, milestones, sketch/final, reviews |
-| Canvas | Power studio: pencil/ink/marker/airbrush, eraser, fill, sample, layers (max 8), symmetry, zoom, stabilizer. Routes: `/create/draw`, `/orders/[id]/draw`. Browser drafts restore stills (and layer PNGs when they fit) |
+| Canvas | Power studio: pencil/ink/marker/airbrush, eraser, fill, sample, layers (max 8), symmetry, zoom, stabilizer. Routes: `/create/draw`, `/orders/[id]/draw`. Browser drafts restore stills (and layer PNGs when they fit). Phone studio fits the paper to the viewport, uses a horizontal tool rail, and tabs Brush / Color / Layers / Publish. |
 | License | `licenseSummary` on request, checkout, and order. Files + usage license; artist keeps copyright. Never “you own the art.” |
 | Identity A | Process log (sampled, size-capped), replay, share card, human-made only with Arya Canvas + non-empty log. Uploads cannot fake it. |
 | Challenges | One seeded brief (`/challenges/night-lantern`). Arya-canvas entries only. Ranked by saves. Try this brief opens Create with the brief pinned. |

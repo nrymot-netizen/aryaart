@@ -22,8 +22,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const drawingMode = pathname.startsWith("/create/draw") || pathname.includes("/draw");
   return (
     <>
-      <header className={`sticky top-0 z-40 border-b border-black/5 bg-paper/90 backdrop-blur-xl ${drawingMode ? "h-12" : ""}`}>
-        <div className={`mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-10 ${drawingMode ? "h-12" : "h-16"} max-w-[1480px]`}>
+      <header className={`sticky top-0 z-40 border-b border-black/5 bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl ${drawingMode ? "h-auto" : ""}`}>
+        <div className={`mx-auto flex items-center justify-between px-3 sm:px-6 lg:px-10 ${drawingMode ? "h-12" : "h-16"} max-w-[1480px]`}>
           <Logo />
           <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
             {nav.map((item) => {
@@ -31,21 +31,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               return <Link key={item.href} href={item.href} className={`rounded-full px-4 py-2 text-sm font-semibold transition ${active ? "bg-ink text-white" : "text-black/60 hover:bg-black/5 hover:text-ink"}`}>{item.label}</Link>;
             })}
           </nav>
-          <div className="flex items-center gap-2">
-            <Link href="/saved" className={`relative grid size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/saved") ? "bg-black/5 text-plum" : ""}`} aria-label="Saved artwork and artists"><BookmarkSimple size={21} weight={pathname.startsWith("/saved") ? "fill" : "regular"} /></Link>
-            <Link href="/notifications" className={`relative grid size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/notifications") ? "bg-black/5 text-plum" : ""}`} aria-label="Notifications"><Bell size={21} />{unreadCount > 0 && <span className="absolute right-2 top-2 size-2 rounded-full bg-coral ring-2 ring-paper" />}</Link>
-            <Link href="/settings" className={`relative grid size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/settings") ? "bg-black/5 text-plum" : ""}`} aria-label="Safety settings"><GearSix size={21} weight={pathname.startsWith("/settings") ? "fill" : "regular"} /></Link>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Link href="/saved" className={`${drawingMode ? "hidden sm:grid" : "grid"} relative size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/saved") ? "bg-black/5 text-plum" : ""}`} aria-label="Saved artwork and artists"><BookmarkSimple size={21} weight={pathname.startsWith("/saved") ? "fill" : "regular"} /></Link>
+            <Link href="/notifications" className={`${drawingMode ? "hidden sm:grid" : "grid"} relative size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/notifications") ? "bg-black/5 text-plum" : ""}`} aria-label="Notifications"><Bell size={21} />{unreadCount > 0 && <span className="absolute right-2 top-2 size-2 rounded-full bg-coral ring-2 ring-paper" />}</Link>
+            <Link href="/settings" className={`${drawingMode ? "hidden sm:grid" : "grid"} relative size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/settings") ? "bg-black/5 text-plum" : ""}`} aria-label="Safety settings"><GearSix size={21} weight={pathname.startsWith("/settings") ? "fill" : "regular"} /></Link>
             <PersonaSwitcher />
           </div>
         </div>
       </header>
-      <main className={`min-h-[calc(100vh-4rem)] ${drawingMode ? "pb-4" : "pb-24 md:pb-10"}`}>{children}</main>
+      <main className={`min-w-0 min-h-[calc(100dvh-4rem)] ${drawingMode ? "pb-[max(0.75rem,env(safe-area-inset-bottom))]" : "pb-[calc(5.75rem+env(safe-area-inset-bottom))] md:pb-10"}`}>{children}</main>
       {!drawingMode && (
-      <nav className="fixed inset-x-0 bottom-0 z-50 flex h-[74px] items-start justify-around border-t border-black/10 bg-paper/95 px-2 pt-2 backdrop-blur-xl md:hidden" aria-label="Mobile navigation">
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex items-start justify-around border-t border-black/10 bg-paper/95 px-1 pt-2 backdrop-blur-xl md:hidden" style={{ paddingBottom: "max(0.65rem, env(safe-area-inset-bottom))" }} aria-label="Mobile navigation">
         {nav.map((item) => {
           const Icon = item.icon;
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-          return <Link key={item.href} href={item.href} className={`flex min-w-14 flex-col items-center gap-1 rounded-xl px-2 py-1 text-[11px] font-semibold ${active ? "text-plum" : "text-black/45"}`}><Icon size={23} weight={active ? "fill" : "regular"} />{item.label}</Link>;
+          return <Link key={item.href} href={item.href} className={`flex min-h-11 min-w-12 flex-col items-center gap-0.5 rounded-xl px-1.5 py-1 text-[10px] font-semibold sm:min-w-14 sm:text-[11px] ${active ? "text-plum" : "text-black/45"}`}><Icon size={22} weight={active ? "fill" : "regular"} />{item.label}</Link>;
         })}
       </nav>
       )}

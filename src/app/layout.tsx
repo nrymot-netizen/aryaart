@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 import { DemoProvider } from "@/features/demo/demo-provider";
@@ -6,6 +6,13 @@ import { DemoProvider } from "@/features/demo/demo-provider";
 export const metadata: Metadata = {
   title: "Arya Art — Find art that feels like you",
   description: "Discover independent artists and commission something personal.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#fbfaf7",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

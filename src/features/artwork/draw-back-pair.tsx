@@ -53,7 +53,7 @@ export function DrawBackPairBody() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <Link href="/" className="text-sm font-bold text-plum">← Discover</Link>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-plum">Draw-back</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-5xl leading-none">{reply.title}</h1>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-5xl">{reply.title}</h1>
       <p className="mt-3 max-w-2xl text-black/55">
         @{replyArtist.username} drew back @{sourceArtist.username}. Watch both pieces get drawn. Request the artist.
       </p>

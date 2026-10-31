@@ -98,7 +98,7 @@ After UI work: exercise the changed flow in the browser (desktop and 360px). A s
 ## Accessibility smoke
 
 - Keyboard to request submit, persona switcher, draw route primary actions.
-- Canvas has an accessible name.
+- Canvas has an accessible name. At 360px the paper fits the viewport; tools scroll sideways; Brush / Color / Layers / Publish are tabs.
 - Replay (when present) does not autoplay against reduced motion.
 - Challenge grid is keyboard-reachable; each tile names title + artist.
 - Contrast on chrome independent of artwork.

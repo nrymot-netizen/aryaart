@@ -126,21 +126,29 @@ function CreateDrawForm() {
   }
 
   return (
-    <form onSubmit={publish} className="px-3 py-4 sm:px-5">
+    <form onSubmit={publish} className="min-w-0 px-2 pb-2 pt-2 sm:px-5 sm:py-4">
       <ViewTracker name="canvas_opened" payload={{ route: "create" }} />
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">{drawBackOk ? "Draw-back" : challenge ? "Challenge brief" : "Arya Canvas"}</p>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl leading-none">{drawBackOk && source ? `Draw back · ${source.title}` : challenge ? challenge.title : "Power studio"}</h1>
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-plum sm:text-xs">{drawBackOk ? "Draw-back" : challenge ? "Challenge brief" : "Arya Canvas"}</p>
+          <h1 className="font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl">{drawBackOk && source ? `Draw back · ${source.title}` : challenge ? challenge.title : "Power studio"}</h1>
           {drawBackOk && sourceArtist && (
-            <p className="mt-2 max-w-xl text-sm leading-6 text-black/55">
+            <p className="mt-1 hidden max-w-xl text-sm leading-6 text-black/55 sm:mt-2 sm:block">
               Ghost still from @{sourceArtist.username}. Your marks are the reply. Uploads cannot enter.
             </p>
           )}
           {sourceId && !drawBackOk && (
             <p className="mt-2 max-w-xl text-sm leading-6 text-red-600">This piece cannot be drawn back. It needs a public Arya replay.</p>
           )}
-          {challenge && <p className="mt-2 max-w-xl text-sm leading-6 text-black/55">{challenge.brief}</p>}
+          {challenge && (
+            <>
+              <p className="mt-2 hidden max-w-xl text-sm leading-6 text-black/55 sm:block">{challenge.brief}</p>
+              <details className="mt-1 sm:hidden">
+                <summary className="text-sm font-bold text-plum">Brief</summary>
+                <p className="mt-1 text-sm leading-6 text-black/55">{challenge.brief}</p>
+              </details>
+            </>
+          )}
         </div>
         {persona.role !== "artist" && <p className="text-sm text-black/50">Switch to LunaLines or SketchMaya to publish.</p>}
       </div>

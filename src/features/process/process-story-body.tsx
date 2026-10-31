@@ -47,7 +47,7 @@ export function ProcessStoryBody() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
       <Link href="/" className="text-sm font-bold text-plum">← Discover</Link>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-plum">Process story</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-5xl leading-none">{service?.title ?? "Sketch to final"}</h1>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-5xl">{service?.title ?? "Sketch to final"}</h1>
       <p className="mt-3 text-black/55">@{artist.username} · Public stills only. The brief and messages are not shown.</p>
       {story.caption ? <p className="mt-5 max-w-2xl text-base leading-7 text-black/70">{story.caption}</p> : null}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

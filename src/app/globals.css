@@ -8,12 +8,12 @@
   --font-display: Iowan Old Style, Baskerville, "Times New Roman", serif;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
-body { margin: 0; background: #fbfaf7; color: #17151b; }
+body { margin: 0; background: #fbfaf7; color: #17151b; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
 button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }

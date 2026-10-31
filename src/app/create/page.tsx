@@ -21,7 +21,7 @@ export default function CreatePage() {
   return (
     <>
       <PageIntro eyebrow="Artist tools" title="What are you creating?" description={persona.role === "artist" ? "Draw on Arya, publish work, or turn a piece into a bookable service." : "Switch to an artist persona to draw and publish."} />
-      <div className="mx-auto grid max-w-4xl gap-3 px-4 pb-20 sm:grid-cols-2 sm:px-6">
+      <div className="mx-auto grid max-w-4xl gap-3 px-4 pb-8 sm:grid-cols-2 sm:px-6">
         <Link
           href={challengeDrawHref(challenge.id)}
           onClick={() => dispatch({ type: "track-event", name: "try_brief_clicked", payload: { challengeId: challenge.id } })}
