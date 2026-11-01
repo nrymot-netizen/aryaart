@@ -82,7 +82,7 @@ Never: “You own the art.” Never: “You own the NFT.”
 
 - Discover shows **Watch it get drawn. Draw back.** Seeded pair: lantern study + paper lantern.
 - `/art/lantern-study` has **Draw back**. Opens `/create/draw?back=lantern-study` with a ghost still. Uploads hidden.
-- Publish as Luna or Maya → `/draw-back/[id]` has **Watch both get drawn** and Copy pair link. Request CTAs stay on the artists. No comments. No DMs.
+- Publish as Luna or Maya → `/draw-back/[id]` has **Watch both get drawn** and a pair share card (copy/download). Request CTAs stay on the artists. No comments. No DMs.
 - Discover draw-back cards stay side-by-side on 360px. Tapping a card opens the pair with `?watch=1` so both replays start together unless reduced motion is on.
 - Upload-only work cannot be a source or a reply.
 

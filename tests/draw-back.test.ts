@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
-import { canDrawBack, canPublishDrawBack, drawBackPairHref, publicDrawBacks } from "@/lib/domain/draw-back";
+import { canDrawBack, canPublishDrawBack, drawBackPairHref, pairShareCopy, publicDrawBacks } from "@/lib/domain/draw-back";
 import { processLogFor } from "@/lib/domain/process-log";
 import { createDemoState, parseDemoState } from "@/features/demo/demo-state";
 import { reduceDemoState, type ReduceContext } from "@/features/demo/demo-reducer";
@@ -96,6 +96,15 @@ describe("draw-back pairs", () => {
   it("opens a pair with an optional watch query", () => {
     expect(drawBackPairHref("dback-lantern-paper")).toBe("/draw-back/dback-lantern-paper");
     expect(drawBackPairHref("dback-lantern-paper", { watch: true })).toBe("/draw-back/dback-lantern-paper?watch=1");
+  });
+
+  it("keeps pair share copy about the reply, not ownership", () => {
+    expect(pairShareCopy("Paper lantern", "SketchMaya", "LunaLines")).toEqual({
+      title: "Paper lantern",
+      credit: "@SketchMaya drew back @LunaLines",
+      marks: "Watch both · Arya Art",
+    });
+    expect(pairShareCopy("Paper lantern", "SketchMaya", "LunaLines").credit).not.toMatch(/own|NFT|mint/i);
   });
 
   it("records draw_back_watched once per pair", () => {

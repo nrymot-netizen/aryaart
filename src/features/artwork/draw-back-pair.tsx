@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Copy, Pause, Play } from "@phosphor-icons/react";
+import { Pause, Play } from "@phosphor-icons/react";
 import { artworks, getArtist, getArtistServices } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
 import { ReplayPlayer, type ReplayPlayerHandle } from "@/features/artwork/replay-player";
 import { DrawBackButton } from "@/features/artwork/draw-back-button";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { Button } from "@/components/ui/button";
-import { findDemoArtwork, publicDrawBacks } from "@/lib/domain/draw-back";
+import { PairShareActions } from "@/features/artwork/artwork-share";
+import { findDemoArtwork, pairShareCopy, publicDrawBacks } from "@/lib/domain/draw-back";
 import { processLogFor } from "@/lib/domain/process-log";
 import { StatusPill } from "@/components/status-pill";
 
@@ -19,7 +20,6 @@ export function DrawBackPairBody() {
   const { state, hydrated, dispatch } = useDemo();
   const [reducedMotion, setReducedMotion] = useState(true);
   const [watching, setWatching] = useState(false);
-  const [copied, setCopied] = useState(false);
   const sourceReplay = useRef<ReplayPlayerHandle>(null);
   const replyReplay = useRef<ReplayPlayerHandle>(null);
   const finished = useRef(0);
@@ -93,31 +93,30 @@ export function DrawBackPairBody() {
     if (finished.current >= 2) setWatching(false);
   };
 
-  const copyPair = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
-      dispatch({ type: "track-event", name: "share_card_copied", payload: { artworkId: pair.id } });
-    } catch {
-      setCopied(false);
-    }
-  };
+  const share = pairShareCopy(reply.title, replyArtist.username, sourceArtist.username);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
       <Link href="/" className="text-sm font-bold text-plum">← Discover</Link>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-plum">Draw-back</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-5xl">{reply.title}</h1>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-[0.95] sm:text-5xl">{reply.title}</h1>
       <p className="mt-3 max-w-2xl text-black/55">
         @{replyArtist.username} drew back @{sourceArtist.username}. Watch both pieces get drawn. Request the artist.
       </p>
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-6">
         <Button onClick={watchBoth} aria-label={watching ? "Stop both replays" : "Watch both get drawn"}>
           {watching ? <Pause size={16} /> : <Play size={16} />}
           {watching ? "Stop both" : "Watch both get drawn"}
         </Button>
-        <Button variant="ghost" onClick={copyPair}><Copy size={16} />{copied ? "Link copied" : "Copy pair link"}</Button>
+        <PairShareActions
+          title={share.title}
+          credit={share.credit}
+          marks={share.marks}
+          sourceSrc={source.image}
+          replySrc={reply.image}
+          onCopied={() => dispatch({ type: "track-event", name: "share_card_copied", payload: { artworkId: pair.id } })}
+          onDownloaded={() => dispatch({ type: "track-event", name: "share_card_downloaded", payload: { artworkId: pair.id } })}
+        />
       </div>
       <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-4">
         <figure>

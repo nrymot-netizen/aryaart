@@ -26,6 +26,14 @@ export function drawBackPairHref(pairId: string, options?: { watch?: boolean }) 
   return options?.watch ? `/draw-back/${pairId}?watch=1` : `/draw-back/${pairId}`;
 }
 
+export function pairShareCopy(replyTitle: string, replyUsername: string, sourceUsername: string) {
+  return {
+    title: replyTitle,
+    credit: `@${replyUsername} drew back @${sourceUsername}`,
+    marks: "Watch both · Arya Art",
+  };
+}
+
 export function findDemoArtwork(created: Artwork[], catalog: Artwork[], id: string) {
   return created.find((item) => item.id === id) ?? catalog.find((item) => item.id === id);
 }

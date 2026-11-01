@@ -22,10 +22,7 @@ export async function renderShareCard(input: {
   if (!ctx) throw new Error("Could not draw the share card.");
   ctx.fillStyle = "#fffdf8";
   ctx.fillRect(0, 0, width, artHeight);
-  const scale = Math.max(width / image.width, artHeight / image.height);
-  const drawWidth = image.width * scale;
-  const drawHeight = image.height * scale;
-  ctx.drawImage(image, (width - drawWidth) / 2, (artHeight - drawHeight) / 2, drawWidth, drawHeight);
+  coverImage(ctx, image, 0, 0, width, artHeight);
   ctx.fillStyle = "#17151b";
   ctx.fillRect(0, artHeight, width, footer);
   ctx.fillStyle = "#fffdf8";
@@ -38,13 +35,65 @@ export async function renderShareCard(input: {
   ctx.fillStyle = "#8b8794";
   ctx.font = "600 13px ui-sans-serif, system-ui, sans-serif";
   ctx.fillText(marks || "Arya Art", 28, artHeight + 106);
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
-  if (!blob) throw new Error("Could not export the share card.");
-  return blob;
+  return exportJpeg(canvas);
+}
+
+export async function renderPairShareCard(input: {
+  sourceSrc: string;
+  replySrc: string;
+  title: string;
+  credit: string;
+  marks: string;
+}): Promise<Blob> {
+  const [source, reply] = await Promise.all([loadImage(input.sourceSrc), loadImage(input.replySrc)]);
+  const width = 1080;
+  const col = 538;
+  const gap = 4;
+  const artHeight = 672;
+  const footer = 148;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = artHeight + footer;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not draw the pair card.");
+  ctx.fillStyle = "#fbfaf7";
+  ctx.fillRect(0, 0, width, artHeight);
+  coverImage(ctx, source, 0, 0, col, artHeight);
+  coverImage(ctx, reply, col + gap, 0, col, artHeight);
+  ctx.fillStyle = "#17151b";
+  ctx.fillRect(0, artHeight, width, footer);
+  ctx.fillStyle = "#fffdf8";
+  ctx.font = "700 32px Georgia, 'Times New Roman', serif";
+  ctx.fillText(truncate(input.title, 34), 32, artHeight + 52);
+  ctx.font = "600 18px ui-sans-serif, system-ui, sans-serif";
+  ctx.fillStyle = "#c7b4ff";
+  ctx.fillText(truncate(input.credit, 48), 32, artHeight + 86);
+  ctx.fillStyle = "#8b8794";
+  ctx.font = "600 14px ui-sans-serif, system-ui, sans-serif";
+  ctx.fillText(input.marks, 32, artHeight + 118);
+  return exportJpeg(canvas);
 }
 
 function truncate(value: string, max: number) {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
+}
+
+function coverImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) {
+  const scale = Math.max(width / image.width, height / image.height);
+  const drawWidth = image.width * scale;
+  const drawHeight = image.height * scale;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, width, height);
+  ctx.clip();
+  ctx.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+  ctx.restore();
+}
+
+async function exportJpeg(canvas: HTMLCanvasElement) {
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.9));
+  if (!blob) throw new Error("Could not export the share card.");
+  return blob;
 }
 
 function loadImage(src: string) {
@@ -135,6 +184,79 @@ export function ArtworkShareActions({
         <Button variant="ghost" onClick={() => void share("download")}><DownloadSimple size={16} /> Download card</Button>
         {processLogJson && <Button variant="ghost" onClick={downloadLog}><DownloadSimple size={16} /> Download replay JSON</Button>}
         <Button variant="ghost" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy link</Button>
+      </div>
+      {status && <p className="text-xs font-semibold text-plum" role="status">{status}</p>}
+    </div>
+  );
+}
+
+export function PairShareActions({
+  title,
+  credit,
+  marks,
+  sourceSrc,
+  replySrc,
+  onCopied,
+  onDownloaded,
+}: {
+  title: string;
+  credit: string;
+  marks: string;
+  sourceSrc: string;
+  replySrc: string;
+  onCopied?: () => void;
+  onDownloaded?: () => void;
+}) {
+  const [status, setStatus] = useState<string | null>(null);
+  const share = async (mode: "download" | "copy") => {
+    try {
+      const blob = await renderPairShareCard({ sourceSrc, replySrc, title, credit, marks });
+      if (mode === "download") {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 28) || "arya"}-pair.jpg`;
+        link.click();
+        URL.revokeObjectURL(url);
+        onDownloaded?.();
+        setStatus("Pair card downloaded.");
+        return;
+      }
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ "image/jpeg": blob })]);
+        onCopied?.();
+        setStatus("Pair card copied.");
+      } catch {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "arya-pair.jpg";
+        link.click();
+        URL.revokeObjectURL(url);
+        onDownloaded?.();
+        setStatus("Pair card downloaded.");
+      }
+    } catch {
+      setStatus("Could not build a pair card from these stills.");
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      onCopied?.();
+      setStatus("Link copied.");
+    } catch {
+      setStatus("Could not copy the pair link.");
+    }
+  };
+
+  return (
+    <div className="mt-4 space-y-2">
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" onClick={() => void share("copy")}><Copy size={16} /> Copy pair card</Button>
+        <Button variant="ghost" onClick={() => void share("download")}><DownloadSimple size={16} /> Download card</Button>
+        <Button variant="ghost" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy pair link</Button>
       </div>
       {status && <p className="text-xs font-semibold text-plum" role="status">{status}</p>}
     </div>

@@ -19,7 +19,7 @@ const nav = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { unreadCount } = useDemo();
-  const drawingMode = pathname.startsWith("/create/draw") || pathname.includes("/draw");
+  const drawingMode = pathname.startsWith("/create/draw") || /\/orders\/[^/]+\/draw/.test(pathname);
   return (
     <>
       <header className={`sticky top-0 z-40 border-b border-black/5 bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur-xl ${drawingMode ? "h-auto" : ""}`}>
@@ -32,9 +32,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
-            <Link href="/saved" className={`${drawingMode ? "hidden sm:grid" : "grid"} relative size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/saved") ? "bg-black/5 text-plum" : ""}`} aria-label="Saved artwork and artists"><BookmarkSimple size={21} weight={pathname.startsWith("/saved") ? "fill" : "regular"} /></Link>
+            <Link href="/saved" className={`relative hidden size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum sm:grid ${pathname.startsWith("/saved") ? "bg-black/5 text-plum" : ""}`} aria-label="Saved artwork and artists"><BookmarkSimple size={21} weight={pathname.startsWith("/saved") ? "fill" : "regular"} /></Link>
             <Link href="/notifications" className={`${drawingMode ? "hidden sm:grid" : "grid"} relative size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/notifications") ? "bg-black/5 text-plum" : ""}`} aria-label="Notifications"><Bell size={21} />{unreadCount > 0 && <span className="absolute right-2 top-2 size-2 rounded-full bg-coral ring-2 ring-paper" />}</Link>
-            <Link href="/settings" className={`${drawingMode ? "hidden sm:grid" : "grid"} relative size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum ${pathname.startsWith("/settings") ? "bg-black/5 text-plum" : ""}`} aria-label="Safety settings"><GearSix size={21} weight={pathname.startsWith("/settings") ? "fill" : "regular"} /></Link>
+            <Link href="/settings" className={`relative hidden size-10 place-items-center rounded-full hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum sm:grid ${pathname.startsWith("/settings") ? "bg-black/5 text-plum" : ""}`} aria-label="Safety settings"><GearSix size={21} weight={pathname.startsWith("/settings") ? "fill" : "regular"} /></Link>
             <PersonaSwitcher />
           </div>
         </div>
