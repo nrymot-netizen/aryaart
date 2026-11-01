@@ -16,7 +16,7 @@ export function DiscoverDrawBacks() {
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">Draw-back</p>
       <h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl sm:text-4xl">Watch it get drawn. Draw back.</h2>
       <p className="mt-2 max-w-2xl text-sm text-black/50">A reply is another drawing, not a comment thread. Uploads cannot enter.</p>
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {pairs.map((pair) => {
           const source = findDemoArtwork(state.createdArtworks, artworks, pair.sourceArtworkId);
           const reply = findDemoArtwork(state.createdArtworks, artworks, pair.replyArtworkId);
@@ -25,9 +25,10 @@ export function DiscoverDrawBacks() {
           if (!source || !reply || !sourceArtist || !replyArtist) return null;
           return (
             <article key={pair.id} className="overflow-hidden rounded-[1.6rem] border border-black/[0.07] bg-white">
-              <Link href={drawBackPairHref(pair.id)} className="grid gap-1 sm:grid-cols-2" aria-label={`${reply.title} by @${replyArtist.username}, drawn back from ${source.title}`}>
+              <Link href={drawBackPairHref(pair.id, { watch: true })} className="relative grid grid-cols-2 gap-px bg-mist" aria-label={`${reply.title} by @${replyArtist.username}, drawn back from ${source.title}`}>
                 <img src={source.image} alt="" className="aspect-[4/5] w-full object-cover" />
                 <img src={reply.image} alt="" className="aspect-[4/5] w-full object-cover" />
+                <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-ink/85 px-2.5 py-1 text-[11px] font-bold text-white">Watch both</span>
               </Link>
               <div className="p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-plum">Draw-back</p>

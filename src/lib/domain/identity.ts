@@ -16,6 +16,7 @@ export const IDENTITY_EVENTS = [
   "process_story_published",
   "draw_back_started",
   "draw_back_published",
+  "draw_back_watched",
 ] as const;
 
 export type IdentityEventName = (typeof IDENTITY_EVENTS)[number];

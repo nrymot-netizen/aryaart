@@ -58,7 +58,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
             <div className="mt-6 rounded-3xl border border-plum/15 bg-mist/60 p-5">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">This is a draw-back</p>
               <p className="mt-2 text-sm leading-6 text-black/60">Both replays play together on the pair page.</p>
-              <Link href={drawBackPairHref(replyPair.id)} className="mt-4 inline-flex min-h-11 items-center font-bold text-plum">Watch the pair</Link>
+              <Link href={drawBackPairHref(replyPair.id, { watch: true })} className="mt-4 inline-flex min-h-11 items-center font-bold text-plum">Watch the pair</Link>
             </div>
           )}
           {replies.length > 0 && (
@@ -70,7 +70,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
                   if (!reply) return null;
                   return (
                     <li key={pair.id}>
-                      <Link href={drawBackPairHref(pair.id)} className="flex items-center gap-3 rounded-2xl bg-white p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">
+                      <Link href={drawBackPairHref(pair.id, { watch: true })} className="flex items-center gap-3 rounded-2xl bg-white p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">
                         <ArtworkMedia src={reply.image} alt="" width={56} height={70} className="h-14 w-11 rounded-xl object-cover" />
                         <span>
                           <strong className="block">{reply.title}</strong>

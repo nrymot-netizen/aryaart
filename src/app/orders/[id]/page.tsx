@@ -83,7 +83,7 @@ export default function OrderWorkspacePage() {
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">{orderStatusLabel[order.status]}</p>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-4xl sm:text-5xl">{service?.title ?? "Commission"}</h1>
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl leading-[0.95] sm:text-5xl">{service?.title ?? "Commission"}</h1>
           <p className="mt-2 text-black/55">@{artist?.username} · ${order.price} · {remainingRevisions(order.revisionLimit, order.revisionsUsed)} revisions left</p>
         </div>
         {order.status === "payment-required" && isBuyer && <Link href={`/checkout/${order.id}`} className="rounded-full bg-plum px-5 py-3 text-sm font-bold text-white">Go to checkout</Link>}
@@ -156,7 +156,15 @@ export default function OrderWorkspacePage() {
       )}
       <ShareProcessCard order={order} isArtist={isArtist} isBuyer={isBuyer} />
 
-      <div className="mt-8 flex gap-4 border-b border-black/10">{tabs.map((item) => <button key={item} onClick={() => setTab(item)} className={`border-b-2 py-3 text-sm font-bold ${tab === item ? "border-ink" : "border-transparent text-black/40"}`}>{item}</button>)}</div>
+      <div className="no-scrollbar mt-8 -mx-4 overflow-x-auto border-b border-black/10 px-4 sm:mx-0 sm:px-0">
+        <div className="flex min-w-max gap-4">
+          {tabs.map((item) => (
+            <button key={item} onClick={() => setTab(item)} className={`min-h-11 shrink-0 border-b-2 py-3 text-sm font-bold ${tab === item ? "border-ink" : "border-transparent text-black/40"}`}>
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="mt-6 lg:hidden" />
       <div className="grid gap-8 lg:grid-cols-[1fr_280px]">
         <div>

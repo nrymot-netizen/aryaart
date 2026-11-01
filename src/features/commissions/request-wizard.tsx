@@ -108,12 +108,12 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
   };
 
   return (
-    <form onSubmit={submit} className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_320px]">
+    <form onSubmit={submit} className="mx-auto grid min-w-0 max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_320px]">
       <ViewTracker name="request_started" payload={{ serviceId: service.id }} />
-      <div>
+      <div className="min-w-0">
         <Link href={`/commissions/${service.id}`} className="text-sm font-bold text-plum">← {service.title}</Link>
-        <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl sm:text-6xl">Request this commission</h1>
-        <ol className="mt-6 flex flex-wrap gap-2">{steps.map((label, index) => <li key={label}><button type="button" onClick={() => setStep(index)} className={`rounded-full px-3 py-1.5 text-xs font-bold ${step === index ? "bg-ink text-white" : "bg-white text-black/50"}`}>{index + 1}. {label}</button></li>)}</ol>
+        <h1 className="mt-4 font-[family-name:var(--font-display)] text-3xl leading-[0.95] sm:text-5xl">Request this commission</h1>
+        <ol className="no-scrollbar mt-6 flex min-h-11 gap-2 overflow-x-auto">{steps.map((label, index) => <li key={label} className="shrink-0"><button type="button" onClick={() => setStep(index)} className={`min-h-11 rounded-full px-3 text-xs font-bold ${step === index ? "bg-ink text-white" : "bg-white text-black/50"}`}>{index + 1}. {label}</button></li>)}</ol>
 
         {step === 0 && <div className="mt-8 space-y-5"><FormField label="Brief" hint="Be specific about character, mood, and must-haves."><Textarea value={brief} onChange={(event) => setBrief(event.target.value)} placeholder="A full-color fantasy portrait of my original character..." /></FormField><p className="text-sm text-black/50">You’re requesting <strong>{service.title}</strong> from @{artist.username}.</p></div>}
         {step === 1 && <div className="mt-8 space-y-5">
@@ -151,10 +151,10 @@ export function RequestWizard({ service, artist }: { service: CommissionService;
         </div>}
 
         {error && <p className="mt-4 text-sm font-semibold text-red-600" role="alert">{error}</p>}
-        <div className="mt-8 flex gap-3">
-          {step > 0 && <Button variant="ghost" onClick={() => { persist(step - 1); setStep(step - 1); }}>Back</Button>}
-          {step < steps.length - 1 && <Button onClick={() => { persist(step + 1); setStep(step + 1); }}>Continue</Button>}
-          {step === steps.length - 1 && <Button type="submit">Submit request</Button>}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          {step > 0 && <Button variant="ghost" className="w-full sm:w-auto" onClick={() => { persist(step - 1); setStep(step - 1); }}>Back</Button>}
+          {step < steps.length - 1 && <Button className="w-full sm:w-auto" onClick={() => { persist(step + 1); setStep(step + 1); }}>Continue</Button>}
+          {step === steps.length - 1 && <Button type="submit" className="w-full sm:w-auto">Submit request</Button>}
         </div>
       </div>
       <aside className="h-fit rounded-4xl border border-black/[0.07] bg-white p-5">

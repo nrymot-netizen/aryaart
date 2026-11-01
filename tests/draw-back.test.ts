@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
-import { canDrawBack, canPublishDrawBack, publicDrawBacks } from "@/lib/domain/draw-back";
+import { canDrawBack, canPublishDrawBack, drawBackPairHref, publicDrawBacks } from "@/lib/domain/draw-back";
 import { processLogFor } from "@/lib/domain/process-log";
 import { createDemoState, parseDemoState } from "@/features/demo/demo-state";
 import { reduceDemoState, type ReduceContext } from "@/features/demo/demo-reducer";
@@ -91,6 +91,18 @@ describe("draw-back pairs", () => {
     const state = createDemoState();
     expect(state.drawBacks.some((item) => item.id === "dback-lantern-paper")).toBe(true);
     expect(publicDrawBacks(state.drawBacks, state.createdArtworks, state.processLogs).some((item) => item.replyArtworkId === seedPaperLanternArtwork.id)).toBe(true);
+  });
+
+  it("opens a pair with an optional watch query", () => {
+    expect(drawBackPairHref("dback-lantern-paper")).toBe("/draw-back/dback-lantern-paper");
+    expect(drawBackPairHref("dback-lantern-paper", { watch: true })).toBe("/draw-back/dback-lantern-paper?watch=1");
+  });
+
+  it("records draw_back_watched once per pair", () => {
+    const first = reduceDemoState(createDemoState(), { type: "track-event", name: "draw_back_watched", payload: { pairId: "dback-lantern-paper" } }, luna);
+    const second = reduceDemoState(first.state, { type: "track-event", name: "draw_back_watched", payload: { pairId: "dback-lantern-paper" } }, luna);
+    expect(first.state.events.filter((event) => event.name === "draw_back_watched")).toHaveLength(1);
+    expect(second.state.events.filter((event) => event.name === "draw_back_watched")).toHaveLength(1);
   });
 
   it("hydrates the seeded pair onto older v2 snapshots", () => {

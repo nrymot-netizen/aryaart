@@ -6,6 +6,7 @@ import { DemoProvider } from "@/features/demo/demo-provider";
 export const metadata: Metadata = {
   title: "Arya Art — Find art that feels like you",
   description: "Discover independent artists and commission something personal.",
+  icons: { icon: "/favicon.svg" },
 };
 
 export const viewport: Viewport = {

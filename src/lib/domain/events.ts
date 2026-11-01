@@ -33,6 +33,7 @@ const UNIQUE_EVENT_KEYS: Partial<Record<ProductEventName, string>> = {
   challenge_opened: "challengeId",
   draw_back_started: "artworkId",
   draw_back_published: "pairId",
+  draw_back_watched: "pairId",
 };
 
 export function isProductEvent(name: string): name is ProductEventName {

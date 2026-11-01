@@ -22,8 +22,8 @@ export function drawBackHref(artworkId: string) {
   return `/create/draw?back=${encodeURIComponent(artworkId)}`;
 }
 
-export function drawBackPairHref(pairId: string) {
-  return `/draw-back/${pairId}`;
+export function drawBackPairHref(pairId: string, options?: { watch?: boolean }) {
+  return options?.watch ? `/draw-back/${pairId}?watch=1` : `/draw-back/${pairId}`;
 }
 
 export function findDemoArtwork(created: Artwork[], catalog: Artwork[], id: string) {

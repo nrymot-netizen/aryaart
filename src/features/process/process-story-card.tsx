@@ -17,7 +17,7 @@ export function ProcessStoryCard({ story }: { story: ProcessStory }) {
   if (!artist || !sketch?.preview || !final?.preview) return null;
   return (
     <article className="overflow-hidden rounded-[1.6rem] border border-black/[0.07] bg-white">
-      <Link href={`/process/${story.orderId}`} className="grid gap-1 sm:grid-cols-2" aria-label={`${service?.title ?? "Process story"} by @${artist.username}`}>
+      <Link href={`/process/${story.orderId}`} className="grid grid-cols-2 gap-px bg-mist" aria-label={`${service?.title ?? "Process story"} by @${artist.username}`}>
         <img src={sketch.preview} alt="" className="aspect-[4/5] w-full object-cover" />
         <img src={final.preview} alt="" className="aspect-[4/5] w-full object-cover" />
       </Link>
