@@ -21,8 +21,14 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
       <Link href={`/orders/${order.id}`} className="text-sm font-bold text-plum">← Order</Link>
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-coral">Simulated checkout</p>
-      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-5xl">Pay in demo mode</h1>
-      <p className="mt-3 text-black/55">No real card is collected. This records a simulated payment and opens the workspace.</p>
+      <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl leading-[0.95] sm:text-5xl">
+        {order.status === "payment-required" ? "Pay in demo mode" : "This order is already paid"}
+      </h1>
+      <p className="mt-3 text-black/55">
+        {order.status === "payment-required"
+          ? "No real card is collected. This records a simulated payment and opens the workspace."
+          : "Checkout already ran in this demo. Open the workspace for files and the license."}
+      </p>
       <div className="mt-8 space-y-3 rounded-4xl border border-black/[0.07] bg-white p-6 text-sm">
         <p className="flex justify-between"><span>Artist</span><strong>@{artist?.username}</strong></p>
         <p className="flex justify-between"><span>Service</span><strong>{service?.title}</strong></p>
@@ -38,7 +44,11 @@ export default function CheckoutPage() {
       {persona.accountType === "protected-teen" && <div className="mt-4"><ProtectedAccountNotice /></div>}
       {pending && persona.role === "buyer" && persona.accountType === "protected-teen" && <p className="mt-4 rounded-3xl bg-mist px-4 py-3 text-sm text-black/60">Waiting on simulated parent approval. Switch to Parent preview to complete this checkpoint.</p>}
       {pending && persona.role === "parent-preview" && <Button className="mt-6 w-full" onClick={() => dispatch({ type: "parent-approve", approvalId: pending.id })}>Approve as parent</Button>}
-      <Button className="mt-6 w-full" onClick={() => dispatch({ type: "buyer-respond", orderId: order.id, action: "complete-checkout" })} disabled={persona.id !== order.buyerId || order.status !== "payment-required"}>Complete demo checkout</Button>
+      {order.status === "payment-required" ? (
+        <Button className="mt-6 w-full" onClick={() => dispatch({ type: "buyer-respond", orderId: order.id, action: "complete-checkout" })} disabled={persona.id !== order.buyerId}>Complete demo checkout</Button>
+      ) : (
+        <Link href={`/orders/${order.id}`} className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">Open the workspace</Link>
+      )}
     </div>
   );
 }

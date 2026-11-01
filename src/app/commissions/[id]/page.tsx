@@ -8,11 +8,23 @@ import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { ProtectedAccountNotice } from "@/components/safety/protected-account-notice";
 import { CreatedServicePage } from "@/features/commissions/created-service-page";
 import { ViewTracker } from "@/features/demo/view-tracker";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const service = services.find((item) => item.id === id);
+  if (service) return { title: service.title };
+  if (id.startsWith("svc-")) return { title: "Commission service" };
+  return { title: "Service not found" };
+}
 
 export default async function ServicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const service = services.find((item) => item.id === id);
-  if (!service) return <CreatedServicePage id={id} />;
+  if (!service) {
+    if (!id.startsWith("svc-")) notFound();
+    return <CreatedServicePage id={id} />;
+  }
   const artist = artists.find((item) => item.id === service.artistId);
   if (!artist) notFound();
   const examples = service.exampleArtworkIds.map((artworkId) => getArtwork(artworkId)).filter(Boolean);

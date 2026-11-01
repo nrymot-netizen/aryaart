@@ -2,10 +2,8 @@
 
 import { ArtworkMedia } from "./artwork-media";
 import Link from "next/link";
-import { Heart } from "@phosphor-icons/react";
 import type { Artwork, Artist } from "@/types";
 import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
-import { formatNumber } from "@/lib/utils";
 import { SaveArtworkButton } from "@/features/saves/save-button";
 
 export function ArtworkCard({ artwork, artist, priority = false }: { artwork: Artwork; artist: Artist; priority?: boolean }) {
@@ -19,12 +17,9 @@ export function ArtworkCard({ artwork, artist, priority = false }: { artwork: Ar
         {artwork.tools.includes(ARYA_CANVAS_TOOL) && <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold text-plum backdrop-blur">Drawn on Arya</span>}
         <SaveArtworkButton artworkId={artwork.id} title={artwork.title} className="absolute right-3 top-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100" />
       </div>
-      <div className="flex items-start justify-between gap-3 px-1 pt-3">
-        <div>
-          <h3 className="font-bold leading-tight"><Link href={`/art/${artwork.id}`} className="hover:text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">{artwork.title}</Link></h3>
-          <Link href={`/artists/${artist.id}`} className="mt-1 block text-sm text-black/55 hover:text-plum">@{artist.username}</Link>
-        </div>
-        <span className="flex items-center gap-1 pt-0.5 text-xs font-semibold text-black/50"><Heart size={14} weight="fill" />{formatNumber(artwork.likes)}</span>
+      <div className="px-1 pt-3">
+        <h3 className="font-bold leading-tight"><Link href={`/art/${artwork.id}`} className="hover:text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">{artwork.title}</Link></h3>
+        <Link href={`/artists/${artist.id}`} className="mt-1 block text-sm text-black/55 hover:text-plum">@{artist.username}</Link>
       </div>
     </article>
   );

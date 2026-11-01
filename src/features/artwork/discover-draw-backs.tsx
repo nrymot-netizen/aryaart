@@ -12,11 +12,11 @@ export function DiscoverDrawBacks() {
   const pairs = publicDrawBacks(state.drawBacks ?? [], catalog, state.processLogs);
   if (!pairs.length) return null;
   return (
-    <section className="mx-auto max-w-[1480px] px-4 pb-16 sm:px-6 lg:px-10">
+    <section className="mx-auto max-w-[1480px] px-4 pb-10 sm:px-6 sm:pb-16 lg:px-10">
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">Draw-back</p>
-      <h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl sm:text-4xl">Watch it get drawn. Draw back.</h2>
+      <h2 className="mt-1 font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl">Watch it get drawn. Draw back.</h2>
       <p className="mt-2 max-w-2xl text-sm text-black/50">A reply is another drawing, not a comment thread. Uploads cannot enter.</p>
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-5 grid gap-5 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
         {pairs.map((pair) => {
           const source = findDemoArtwork(state.createdArtworks, artworks, pair.sourceArtworkId);
           const reply = findDemoArtwork(state.createdArtworks, artworks, pair.replyArtworkId);

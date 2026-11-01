@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useDemo } from "@/features/demo/demo-provider";
 import { challengeDrawHref } from "@/data/seed-challenges";
+import { isChallengeOpen } from "@/lib/domain/challenges";
 import type { Challenge } from "@/types";
 
 export function TryBriefButton({ challenge, className = "" }: { challenge: Challenge; className?: string }) {
   const { dispatch } = useDemo();
+  if (!isChallengeOpen(challenge)) return null;
   return (
     <Link
       href={challengeDrawHref(challenge.id)}

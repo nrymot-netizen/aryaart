@@ -7,7 +7,7 @@ export function DemoEventInspector() {
   if (!hydrated) return null;
   const events = [...state.events].slice(-12).reverse();
   return (
-    <section className="mx-auto mt-10 max-w-3xl px-4 pb-8 sm:px-6">
+    <section className="mt-8 pb-4">
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-black/40">Demo events</p>
       <h2 className="mt-1 text-lg font-bold">This browser only</h2>
       <p className="mt-1 text-sm text-black/50">Instrumentation for replay, challenges, and process stories. Not a live analytics product.</p>

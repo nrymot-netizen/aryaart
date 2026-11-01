@@ -9,6 +9,6 @@ const styles: Record<Availability, string> = {
 };
 
 export function StatusPill({ status, slots }: { status: Availability; slots?: number }) {
-  const text = status === "limited" && slots ? `${slots} slots open` : availabilityLabel[status];
+  const text = status === "limited" && slots != null ? `${slots} slot${slots === 1 ? "" : "s"} open` : availabilityLabel[status];
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${styles[status]}`}><span className="size-1.5 rounded-full bg-current" />{text}</span>;
 }

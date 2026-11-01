@@ -18,10 +18,10 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   return (
     <div>
       <DiscoverHero><SearchFilters filters={filters} /></DiscoverHero>
-      {!filteredMode && <DiscoverChallenge />}
       {!filteredMode && <DiscoverDrawBacks />}
-      {!filteredMode && <DiscoverProcessStories />}
       <DemoCreatedFeed filters={filteredMode ? filters : undefined} />
+      {!filteredMode && <DiscoverChallenge />}
+      {!filteredMode && <DiscoverProcessStories />}
       {filteredMode ? (
         <FilteredDiscoverResults artworks={filtered} artists={artists} filters={filters} />
       ) : (

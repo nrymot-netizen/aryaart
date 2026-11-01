@@ -485,7 +485,7 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         }
       }
       const challenge = command.challengeId ? getChallenge(command.challengeId) : undefined;
-      const entered = Boolean(command.challengeId && canEnterChallenge(challenge, processLog, artwork.tools));
+      const entered = Boolean(command.challengeId && canEnterChallenge(challenge, processLog, artwork.tools, ctx.now));
       const boundLog = entered && processLog && command.challengeId ? { ...processLog, challengeId: command.challengeId } : processLog;
       const challengeId = entered ? command.challengeId : undefined;
       const pair = command.replyToArtworkId && processLog

@@ -29,7 +29,10 @@ export function ProcessStoryBody() {
       <div className="mx-auto max-w-3xl px-4 py-24 text-center">
         <h1 className="text-2xl font-bold">No public process story</h1>
         <p className="mt-2 text-black/50">This stays private unless both the buyer and artist opt in.</p>
-        <Link href="/" className="mt-4 inline-block font-bold text-plum">Return to Discover</Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/" className="inline-flex min-h-11 items-center font-bold text-plum">Return to Discover</Link>
+          <Link href="/draw-back/dback-lantern-paper?watch=1" className="inline-flex min-h-11 items-center font-bold text-plum">Watch a draw-back</Link>
+        </div>
       </div>
     );
   }

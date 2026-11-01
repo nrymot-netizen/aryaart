@@ -1,6 +1,6 @@
 # Current state
 
-**As of:** 20 October 2026  
+**As of:** 1 November 2026  
 **Repo:** [nrymot-netizen/aryaart](https://github.com/nrymot-netizen/aryaart) `main`  
 **Live:** https://aryaart.vercel.app (Hobby, Git-connected)  
 **Persistence:** `localStorage` key `arya-demo-state-v2` (`DEMO_STATE_VERSION = 2`)
@@ -11,19 +11,19 @@ This is a product-validation demo, not a production marketplace. Treat it as the
 
 | Area | What exists |
 | --- | --- |
-| Discover / search | Artwork-first feed, URL filters, saves, Drawn on Arya section, Night lantern challenge module, Sketch to final process stories |
+| Discover / search | Artwork-first feed, URL filters, saves (no like counts), Drawn on Arya, draw-backs in the first fold, closed Night lantern archive, Sketch to final process stories |
 | Artists | Profiles, tabs, rules, availability CTAs, waitlist |
 | Commissions | Services, request wizard (including buyer reference sketch), accept/counter/decline, simulated checkout |
 | Workspace | Order messages (no DMs), files, milestones, sketch/final, reviews |
 | Canvas | Power studio: pencil/ink/marker/airbrush, eraser, fill, sample, layers (max 8), symmetry, zoom, stabilizer. Routes: `/create/draw`, `/orders/[id]/draw`. Browser drafts restore stills (and layer PNGs when they fit). Phone studio fits the paper to the viewport, uses a horizontal tool rail, and tabs Brush / Color / Layers / Publish. |
 | License | `licenseSummary` on request, checkout, and order. Files + usage license; artist keeps copyright. Never “you own the art.” |
 | Identity A | Process log (sampled, size-capped), replay, share card, human-made only with Arya Canvas + non-empty log. Uploads cannot fake it. |
-| Challenges | One seeded brief (`/challenges/night-lantern`). Arya-canvas entries only. Ranked by saves. Try this brief opens Create with the brief pinned. |
+| Challenges | One seeded brief (`/challenges/night-lantern`). Open only between `opensAt` and `closesAt` (ended 2026-09-30). Arya-canvas entries only. Ranked by saves. Try this brief hides when closed. |
 | Draw-back | Replay reply. Public Arya-canvas work can open Create with that still as a ghost. The reply must be drawn on Arya. Pair page has **Watch both get drawn** plus a two-still share card. Discover cards stay 2-up on phone. No comments, no DMs, no upload pairs. Seeded: Maya’s paper lantern replies to Luna’s lantern study. |
 | Process stories | After final acceptance, Share process is default off. Both people opt in → public sketch+final stills, optional final replay. Cards stay 2-up on phone. Brief/messages/references stay private. Buyer caption is scanned for contact. Protected-teen work is not auto-posted. |
 | Studio | Availability, incoming work, waitlist demand, open slots, created art/services, simulated ledger, first paid piece moment, `/studio/services` |
 | Safety | 13+ notice (not verification), protected-teen chrome, contact block on protected threads (messages + brief/notes), report / block / leave stubs, review report/hide. Still no production moderation. See [SAFETY.md](./SAFETY.md). |
-| Demo | Persona switcher: Alex, Riley (teen buyer), LunaLines, SketchMaya, Parent preview. Reset demo. Last identity events on Notifications. Safety settings at `/settings`. |
+| Demo | Persona switcher: Alex, Riley (teen buyer), LunaLines, SketchMaya, Parent preview. Reset demo. Identity events live under Settings, not Notifications. Safety settings at `/settings`. |
 
 ## As-built layout (do not reshuffle unless a phase requires it)
 
@@ -63,7 +63,7 @@ Public URLs are flat App Router routes (no `(marketplace)` groups yet). Domain l
 | Studio as SketchMaya, open a slot | Waitlist promotion |
 | Parent preview → Load a pending teen request | Riley draft held until simulated parent approval |
 | `/art/lantern-study` | Seeded Arya-canvas lantern with Play replay; also a Night lantern challenge entry |
-| `/challenges/night-lantern` | Active brief + save-ranked grid |
+| `/challenges/night-lantern` | Closed brief (after 2026-09-30) + save-ranked grid |
 | `/art/lantern-study` → Draw back | Ghost still in Create; publish as SketchMaya or Luna |
 | `/draw-back/dback-lantern-paper` | Seeded pair: lantern study + paper lantern |
 

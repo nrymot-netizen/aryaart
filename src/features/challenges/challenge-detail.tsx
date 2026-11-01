@@ -5,7 +5,7 @@ import { PageIntro } from "@/components/page-intro";
 import { useDemo } from "@/features/demo/demo-provider";
 import { ChallengeEntryCard } from "@/features/challenges/challenge-entry-card";
 import { TryBriefButton } from "@/features/challenges/try-brief-button";
-import { eligibleChallengeEntries, rankChallengeEntries } from "@/lib/domain/challenges";
+import { eligibleChallengeEntries, isChallengeOpen, rankChallengeEntries } from "@/lib/domain/challenges";
 import { formatDate } from "@/lib/utils";
 import type { Challenge } from "@/types";
 
@@ -29,12 +29,14 @@ export function ChallengeDetail({ challenge }: { challenge: Challenge }) {
   return (
     <>
       <PageIntro
-        eyebrow="Human-only challenge"
+        eyebrow={isChallengeOpen(challenge) ? "Human-only challenge" : "Closed challenge"}
         title={challenge.title}
         description={challenge.brief}
       />
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 px-4 pb-10 sm:px-6">
-        <p className="text-sm text-black/45">Open {formatDate(challenge.opensAt.slice(0, 10))} – {formatDate(challenge.closesAt.slice(0, 10))}. Arya Canvas only. Ranked by saves, not followers.</p>
+        <p className="text-sm text-black/45">
+          {isChallengeOpen(challenge) ? "Open" : "Closed"} {formatDate(challenge.opensAt.slice(0, 10))} – {formatDate(challenge.closesAt.slice(0, 10))}. Arya Canvas only. Ranked by saves, not followers.
+        </p>
         <TryBriefButton challenge={challenge} />
       </div>
       <section className="mx-auto max-w-[1480px] px-4 pb-20 sm:px-6 lg:px-10">

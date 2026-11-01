@@ -18,8 +18,8 @@ export function DemoCreatedFeed({ filters }: { filters?: DiscoveryFilters }) {
   if (!artworks.length) return null;
   return (
     <section className="mx-auto max-w-[1480px] px-4 pb-16 sm:px-6 lg:px-10">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">Drawn on Arya</p>
-      <h2 className="mb-6 mt-1 flex items-center gap-2 font-[family-name:var(--font-display)] text-3xl sm:text-4xl"><PencilSimple size={28} className="text-plum" />From this demo studio</h2>
+      <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">Made here</p>
+      <h2 className="mb-6 mt-1 flex items-center gap-2 font-[family-name:var(--font-display)] text-3xl sm:text-4xl"><PencilSimple size={28} className="text-plum" />Drawn on Arya</h2>
       <ArtworkMasonry artworks={artworks} artists={artists} />
     </section>
   );

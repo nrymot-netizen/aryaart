@@ -2,12 +2,13 @@ import { drawnOnArya } from "@/lib/domain/identity";
 import { processLogFor, type ProcessLog } from "@/lib/domain/process-log";
 import type { Artwork, Challenge, ChallengeEntry } from "@/types";
 
-export function isChallengeOpen(challenge: Challenge) {
-  return challenge.status === "active";
+export function isChallengeOpen(challenge: Challenge, now = new Date().toISOString()) {
+  if (challenge.status !== "active") return false;
+  return now >= challenge.opensAt && now <= challenge.closesAt;
 }
 
-export function canEnterChallenge(challenge: Challenge | undefined, processLog: ProcessLog | null, tools: string[]) {
-  if (!challenge || !isChallengeOpen(challenge)) return false;
+export function canEnterChallenge(challenge: Challenge | undefined, processLog: ProcessLog | null, tools: string[], now?: string) {
+  if (!challenge || !isChallengeOpen(challenge, now)) return false;
   if (!processLog || processLog.ops.length === 0) return false;
   return drawnOnArya(tools);
 }

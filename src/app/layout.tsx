@@ -4,7 +4,10 @@ import { AppShell } from "@/components/app-shell";
 import { DemoProvider } from "@/features/demo/demo-provider";
 
 export const metadata: Metadata = {
-  title: "Arya Art — Find art that feels like you",
+  title: {
+    default: "Arya Art — Find art that feels like you",
+    template: "%s — Arya Art",
+  },
   description: "Discover independent artists and commission something personal.",
   icons: { icon: "/favicon.svg" },
 };

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/form-field";
 import { Button } from "@/components/ui/button";
 import { useDemo } from "@/features/demo/demo-provider";
 import { PersonaContextBanner } from "@/features/demo/persona-context-banner";
+import { DemoEventInspector } from "@/features/demo/demo-event-inspector";
 
 const protections = [
   { id: "contact", label: "Block contact sharing on protected threads", hint: "Email, phone, and off-platform handles stay blocked." },
@@ -57,6 +58,7 @@ export default function SettingsPage() {
           </section>
         )}
         <p className="text-xs leading-5 text-black/40">13+ only. This is not age verification. Payments and parent approval are simulated. No moderator is on call.</p>
+        <DemoEventInspector />
       </div>
     </>
   );

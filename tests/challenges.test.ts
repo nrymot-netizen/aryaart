@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
-import { canEnterChallenge, eligibleChallengeEntries, rankChallengeEntries } from "@/lib/domain/challenges";
+import { canEnterChallenge, eligibleChallengeEntries, isChallengeOpen, rankChallengeEntries } from "@/lib/domain/challenges";
 import { createDemoState } from "@/features/demo/demo-state";
 import { reduceDemoState, type ReduceContext } from "@/features/demo/demo-reducer";
 import { ACTIVE_CHALLENGE_ID, getActiveChallenge, seedLanternChallengeEntry, seedPaperLanternArtwork, seedPaperLanternChallengeEntry } from "@/data/seed-challenges";
@@ -91,6 +91,24 @@ describe("human-only challenges", () => {
     }, luna);
     expect(result.state.challengeEntries.length).toBe(before);
     expect(result.state.challengeEntries.some((item) => item.artworkId === "art-no-challenge")).toBe(false);
+  });
+
+  it("closes after closesAt and refuses new entries", () => {
+    const challenge = getActiveChallenge();
+    expect(isChallengeOpen(challenge, "2026-08-25T18:00:00Z")).toBe(true);
+    expect(isChallengeOpen(challenge, "2026-09-30T23:59:59Z")).toBe(true);
+    expect(isChallengeOpen(challenge, "2026-10-01T00:00:00Z")).toBe(false);
+    const late: ReduceContext = { ...luna, now: "2026-11-01T16:00:00Z" };
+    expect(canEnterChallenge(challenge, { id: "p", subjectId: "a", subjectKind: "artwork", paperColor: "#fff", width: 720, height: 900, ops: [{ type: "fill", x: 12, y: 20, color: "#17151b", layerId: "layer-1" }], recordedAt: "2026-11-01" }, [ARYA_CANVAS_TOOL], late.now)).toBe(false);
+    const result = reduceDemoState(createDemoState(), {
+      type: "create-artwork",
+      challengeId: ACTIVE_CHALLENGE_ID,
+      processOps: [{ type: "fill", x: 40, y: 80, color: "#e0a51a", layerId: "layer-1" }],
+      paperColor: "#1c1922",
+      artwork: artwork("art-late-challenge"),
+    }, late);
+    expect(result.state.challengeEntries.some((item) => item.artworkId === "art-late-challenge")).toBe(false);
+    expect(result.href).toBe("/art/art-late-challenge");
   });
 
   it("hides an entry that is not bound to the brief", () => {

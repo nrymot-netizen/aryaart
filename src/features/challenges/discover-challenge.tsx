@@ -6,7 +6,7 @@ import { getActiveChallenge } from "@/data/seed-challenges";
 import { useDemo } from "@/features/demo/demo-provider";
 import { ChallengeEntryCard } from "@/features/challenges/challenge-entry-card";
 import { TryBriefButton } from "@/features/challenges/try-brief-button";
-import { eligibleChallengeEntries, rankChallengeEntries } from "@/lib/domain/challenges";
+import { eligibleChallengeEntries, isChallengeOpen, rankChallengeEntries } from "@/lib/domain/challenges";
 
 export function DiscoverChallenge() {
   const { state, hydrated } = useDemo();
@@ -21,7 +21,7 @@ export function DiscoverChallenge() {
     <section className="mx-auto max-w-[1480px] px-4 pb-10 sm:px-6 sm:pb-16 lg:px-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">Human-only challenge</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-coral">{isChallengeOpen(challenge) ? "Human-only challenge" : "Closed challenge"}</p>
           <h2 className="mt-1 flex items-center gap-2 font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl"><Lamp size={26} className="text-plum" />{challenge.title}</h2>
           <p className="mt-3 max-w-2xl text-base leading-7 text-black/60">{challenge.brief}</p>
         </div>

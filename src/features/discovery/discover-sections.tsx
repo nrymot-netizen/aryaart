@@ -11,13 +11,13 @@ export function DiscoverHero({ children }: { children: React.ReactNode }) {
     <section className="relative overflow-hidden border-b border-black/5 bg-[#f4f0ea]">
       <div className="absolute -left-24 -top-36 size-72 rounded-full bg-[#f1b6ad]/55 blur-3xl" />
       <div className="absolute -right-20 bottom-0 size-80 rounded-full bg-[#cfc0ef]/55 blur-3xl" />
-      <div className="relative mx-auto max-w-[1480px] px-4 py-8 sm:px-6 sm:py-20 lg:px-10">
+      <div className="relative mx-auto max-w-[1480px] px-4 py-5 sm:px-6 sm:py-20 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-plum ring-1 ring-black/5 sm:mb-5"><Sparkle size={14} weight="fill" />Independent art, thoughtfully discovered</div>
-          <h1 className="text-balance font-[family-name:var(--font-display)] text-[2.4rem] leading-[0.94] tracking-[-0.03em] sm:text-7xl lg:text-[5.8rem]">Find art that feels<br className="hidden sm:block" /> like <em className="text-plum">you.</em></h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-black/60 sm:mt-6 sm:text-lg">Discover artists by what they create—not by how many followers they have. Commission something completely personal.</p>
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-plum ring-1 ring-black/5 sm:mb-5"><Sparkle size={14} weight="fill" />Independent art, thoughtfully discovered</div>
+          <h1 className="text-balance font-[family-name:var(--font-display)] text-[1.85rem] leading-[0.95] tracking-[-0.03em] sm:text-7xl lg:text-[5.8rem]">Find art that feels<br className="hidden sm:block" /> like <em className="text-plum">you.</em></h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-black/60 sm:mt-6 sm:text-lg">Discover artists by what they create—not by how many followers they have. Commission something completely personal.</p>
         </div>
-        <div className="mt-6 sm:mt-9">{children}</div>
+        <div className="mt-4 sm:mt-9">{children}</div>
       </div>
     </section>
   );

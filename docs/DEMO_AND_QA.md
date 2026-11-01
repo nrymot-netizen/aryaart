@@ -6,7 +6,7 @@ Use this before calling a phase done. Desktop and 360px mobile. Demo state: Rese
 
 Time box: about 10 minutes.
 
-1. Open `/` as **Alex · Buyer**. Confirm art leads the page.
+1. Open `/` as **Alex · Buyer**. Confirm art leads the page. On a phone, a draw-back pair should sit in the first fold — not the closed Night lantern module.
 2. Open LunaLines → **Anime Character Portrait** → Request commission.
 3. Complete the wizard (brief, personal use, references optional). Submit. Status: Awaiting artist.
 4. Switch to **LunaLines · Artist**. Studio or Orders → Accept.
@@ -29,7 +29,7 @@ Time box: about 10 minutes.
 
 - Studio as Luna shows incoming · waitlist · open slots. Studio as Maya shows waitlist demand (seeded 3).
 - Checkout copy: simulated pay, digital files plus a license, no physical shipping.
-- Notifications includes a **Demo events** list (this browser only).
+- Settings includes a **Demo events** list (this browser only). Notifications stay product pings.
 
 ## Safety loop
 
@@ -66,9 +66,9 @@ Never: “You own the art.” Never: “You own the NFT.”
 
 ## Identity B — challenges (shipped)
 
-- Discover shows **Night lantern** with Try this brief.
+- Discover shows **Night lantern** as a closed archive after 2026-09-30. Try this brief is hidden.
 - `/challenges/night-lantern` ranks Arya-canvas entries by saves, not followers.
-- Luna can enter from Create; uploads cannot enter.
+- During the window, Luna can enter from Create; uploads cannot enter. After `closesAt`, publish stays on the portfolio.
 - Buyer can save an entry and request Luna from a tile. Maya tiles stay waitlist.
 
 ## Identity C — process stories (shipped)

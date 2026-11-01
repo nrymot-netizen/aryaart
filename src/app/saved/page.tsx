@@ -26,7 +26,7 @@ export default function SavedPage() {
             {savedArt.length ? <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">{savedArt.map((artwork) => {
               const artist = artists.find((item) => item.id === artwork.artistId) ?? getArtist(artwork.artistId);
               return artist ? <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} /> : null;
-            })}</div> : <EmptyState icon={Heart} title="No saved artwork yet" description="Tap the heart on a piece to keep it here." />}
+            })}</div> : <EmptyState icon={Heart} title="No saved artwork yet" description="Tap Save on a piece to keep it here." />}
           </div>
         </section>
         <section>

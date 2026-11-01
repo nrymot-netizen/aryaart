@@ -13,6 +13,7 @@ import { createDraftId, drawingDraftFor } from "@/lib/domain/drawing-drafts";
 import { processLogFor } from "@/lib/domain/process-log";
 import { artworks, getArtist } from "@/data/mock-data";
 import { getChallenge } from "@/data/seed-challenges";
+import { isChallengeOpen } from "@/lib/domain/challenges";
 import { ViewTracker } from "@/features/demo/view-tracker";
 import type { ArtworkStyle, ArtworkSubject, PostType } from "@/types";
 
@@ -41,7 +42,8 @@ function CreateDrawForm() {
   const draftId = createDraftId("create", sourceId ? `${artistId}-back-${sourceId}` : artistId);
   const savedDraft = drawingDraftFor(state.drawingDrafts, draftId);
   const requestedType = searchParams.get("type") ?? "finished";
-  const challenge = getChallenge(searchParams.get("challenge") ?? sourceLog?.challengeId ?? "");
+  const requestedChallenge = getChallenge(searchParams.get("challenge") ?? sourceLog?.challengeId ?? "");
+  const challenge = requestedChallenge && isChallengeOpen(requestedChallenge) ? requestedChallenge : undefined;
   const postType = postTypes[requestedType] ?? "finished";
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

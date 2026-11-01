@@ -18,6 +18,7 @@ import { CreatedArtistPosts } from "@/features/studio/created-artist-posts";
 import { CreatedArtistServices } from "@/features/studio/created-artist-services";
 import { ReviewList } from "@/features/reviews/review-list";
 import { ViewTracker } from "@/features/demo/view-tracker";
+import type { Metadata } from "next";
 
 const tabs: { id: ArtistProfileTab; label: string }[] = [
   { id: "portfolio", label: "Portfolio" },
@@ -29,6 +30,13 @@ const tabs: { id: ArtistProfileTab; label: string }[] = [
 
 export function generateStaticParams() {
   return artists.map((artist) => ({ id: artist.id }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const artist = getArtist(id);
+  if (!artist) return { title: "Artist not found" };
+  return { title: `@${artist.username}` };
 }
 
 export default async function ArtistProfilePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
@@ -92,7 +100,7 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
         <aside>
           <div className="rounded-3xl border border-black/[0.07] bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between"><h2 className="text-lg font-bold">Commission services</h2><StatusPill status={artist.availability} /></div>
-            {artistServices.length ? <div className="mt-3 divide-y divide-black/[0.07]">{artistServices.map((service) => <Link href={`/commissions/${service.id}`} key={service.id} className="block py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum"><h3 className="font-bold">{service.title}</h3><p className="mt-1 line-clamp-2 text-sm leading-5 text-black/50">{service.description}</p><div className="mt-3 flex items-center justify-between text-sm"><span className="text-black/45">{service.turnaround} · {service.revisions} revisions</span><strong>From ${service.startingPrice}</strong></div></Link>)}</div> : <p className="py-8 text-center text-sm text-black/45">No active services right now.</p>}
+            {artistServices.length ? <div className="mt-3 divide-y divide-black/[0.07]">{artistServices.map((service) => <Link href={`/commissions/${service.id}`} key={service.id} className="block py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum"><h3 className="font-bold">{service.title}</h3><p className="mt-1 line-clamp-2 text-sm leading-5 text-black/50">{service.description}</p><div className="mt-3 flex items-center justify-between text-sm"><span className="text-black/45">{service.turnaround} · {service.revisions} revision{service.revisions === 1 ? "" : "s"}</span><strong>From ${service.startingPrice}</strong></div></Link>)}</div> : <p className="py-8 text-center text-sm text-black/45">No active services right now.</p>}
             <div className="mt-3"><AvailabilityCta availability={artist.availability} artistId={artist.id} serviceId={primaryService?.id} slots={artist.slots} href={primaryService ? `/commissions/${primaryService.id}/request` : undefined} /></div>
           </div>
           {artist.accountType === "protected-teen" && <div className="mt-4"><ProtectedAccountNotice /></div>}
