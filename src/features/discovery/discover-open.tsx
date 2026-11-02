@@ -16,7 +16,7 @@ export function DiscoverOpenHero() {
           <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-ink/85 px-3 py-1.5 text-xs font-bold text-white">Watch both</span>
         </Link>
         <h1 className="mt-5 font-[family-name:var(--font-display)] text-[2rem] leading-[0.95] tracking-[-0.03em] sm:text-6xl">Watch it get drawn. Draw back.</h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-black/60 sm:text-base">A reply is another drawing, not a comment. Draw on Arya in this browser — no account yet.</p>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-black/60 sm:text-base">A reply is another drawing, not a comment. Watch both, then draw back on Arya.</p>
         <div className="mt-5 flex flex-wrap gap-2">
           <Link href={watchHref} className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">Watch both</Link>
           <Link href={backHref} className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-white px-5 text-sm font-bold text-ink">Draw back</Link>

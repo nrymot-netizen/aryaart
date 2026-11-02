@@ -18,7 +18,7 @@ export default function CreatePage() {
   const canOfferServices = persona.role === "artist" && persona.artistId && persona.artistId !== "you";
   return (
     <>
-      <PageIntro eyebrow="Create" title="Draw something" description="Anyone can draw on Arya in this browser. Work stays on this device. Commission services stay with the seeded artists." />
+      <PageIntro eyebrow="Create" title="Draw something" description="Open the studio, make a piece, and publish it. No generative AI in the canvas." />
       <div className="mx-auto grid max-w-4xl gap-3 px-4 pb-8 sm:grid-cols-2 sm:px-6">
         {drawOptions.map(({ href, icon: Icon, title, detail }) => (
           <Link key={title} href={href} className="flex items-center gap-4 rounded-3xl border border-black/[0.07] bg-white p-5 text-left transition hover:-translate-y-0.5 hover:shadow-card">

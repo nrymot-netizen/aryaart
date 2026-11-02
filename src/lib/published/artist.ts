@@ -52,3 +52,7 @@ export function normalizePublishArtistId(artistId: string, handle: string) {
 export function shouldSharePublish(artistId: string) {
   return artistId === "you" || isPublisherHandle(artistId);
 }
+
+export function isVisitorArtist(id: string) {
+  return shouldSharePublish(id);
+}

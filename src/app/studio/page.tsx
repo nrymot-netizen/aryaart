@@ -23,13 +23,32 @@ export default function StudioPage() {
     );
   }
   const artistId = persona.artistId ?? "luna";
+  const created = state.createdArtworks.filter((item) => item.artistId === artistId);
+  if (artistId === "you") {
+    return (
+      <>
+        <PageIntro eyebrow="Your studio" title="Your drawings" description="Publish from the canvas. Replay stays with the piece." />
+        <div className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
+          <Link href="/create/draw" className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">Open the studio</Link>
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {created.length === 0 && <p className="col-span-full rounded-3xl border border-dashed border-black/15 bg-white px-5 py-10 text-sm text-black/50">Nothing published yet. Draw something and it will land here.</p>}
+            {created.map((artwork) => (
+              <Link key={artwork.id} href={`/art/${artwork.id}`} className="overflow-hidden rounded-2xl bg-mist">
+                <img src={artwork.image} alt={artwork.title} className="aspect-[4/5] w-full object-cover" />
+                <span className="block truncate px-3 py-2 text-sm font-bold">{artwork.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  }
   const artist = getArtist(artistId);
   const availability = state.artistAvailability[artistId]?.availability ?? artist?.availability ?? "open";
   const slots = state.artistAvailability[artistId]?.slots ?? artist?.slots;
   const balance = calculateSimulatedBalance(state.ledger, artistId);
   const incoming = state.orders.filter((order) => order.artistId === artistId && order.status === "awaiting-artist");
   const active = state.orders.filter((order) => order.artistId === artistId && ["payment-required", "in-progress", "sketch-review", "final-review"].includes(order.status));
-  const created = state.createdArtworks.filter((item) => item.artistId === artistId);
   const waitlistCount = state.waitlists.filter((entry) => entry.artistId === artistId && entry.status === "active").length;
   const catalogSlots = getArtistServices(artistId).reduce((sum, service) => sum + (service.remainingSlots ?? 0), 0);
   const openSlots = slots ?? catalogSlots;
@@ -62,7 +81,7 @@ export default function StudioPage() {
             {incoming.length === 0 && <p className="py-6 text-sm text-black/45">No incoming requests. Load the Luna scenario or wait for a buyer.</p>}
             {incoming.map((order) => <Link key={order.id} href={`/orders/${order.id}`} className="block py-4"><p className="font-bold">{getService(order.serviceId)?.title}</p><p className="text-sm text-black/50">{orderStatusLabel[order.status]} · ${order.estimatedPrice}</p></Link>)}
           </div>
-          <h2 className="mt-6 font-bold">Drawn in this demo</h2>
+          <h2 className="mt-6 font-bold">Published drawings</h2>
           <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
             {created.length === 0 && <p className="col-span-full py-6 text-sm text-black/45">Open the studio and publish a piece.</p>}
             {created.map((artwork) => <Link key={artwork.id} href={`/art/${artwork.id}`} className="overflow-hidden rounded-2xl bg-mist"><img src={artwork.image} alt={artwork.title} className="aspect-[4/5] w-full object-cover" /></Link>)}

@@ -11,7 +11,7 @@ import { SaveArtistButton } from "@/features/saves/save-button";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { WaitlistButton } from "@/features/waitlist/waitlist-button";
 import { artists, getArtist, getArtistArt, getArtistPosts, getArtistServices, getArtwork } from "@/data/mock-data";
-import { isPublisherHandle } from "@/lib/published/artist";
+import { isVisitorArtist } from "@/lib/published/artist";
 import type { ArtistProfileTab } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { CreatedArtistWork } from "@/features/studio/created-artist-work";
@@ -66,7 +66,7 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
               <p className="mt-1 text-lg text-black/60">{artist.displayName} · {artist.specialty}</p>
               <p className="mt-4 max-w-xl leading-7 text-black/65">{artist.bio}</p>
               <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm sm:justify-start">
-                {artist.id === "you" || isPublisherHandle(artist.id) ? (
+                {isVisitorArtist(artist.id) ? (
                   <span>Drawn on Arya. A person, not a follower count.</span>
                 ) : (
                   <>
@@ -81,11 +81,17 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
               <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">{artist.styles.map((style) => <span key={style} className="rounded-full bg-white px-3 py-1 text-xs font-semibold">{style}</span>)}</div>
             </div>
             <div className="mt-6 flex w-full flex-col gap-2 sm:mt-0 sm:w-64">
-              <SaveArtistButton artistId={artist.id} name={`@${artist.username}`} />
-              {artist.availability === "waitlist" && primaryService ? <WaitlistButton artistId={artist.id} serviceId={primaryService.id} /> : null}
-              {artist.availability !== "closed" && artist.availability !== "waitlist" && primaryService ? (
-                <Link href={`/commissions/${primaryService.id}/request`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum">Request art</Link>
-              ) : null}
+              {isVisitorArtist(artist.id) ? (
+                <Link href="/create/draw" className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum">Draw something</Link>
+              ) : (
+                <>
+                  <SaveArtistButton artistId={artist.id} name={`@${artist.username}`} />
+                  {artist.availability === "waitlist" && primaryService ? <WaitlistButton artistId={artist.id} serviceId={primaryService.id} /> : null}
+                  {artist.availability !== "closed" && artist.availability !== "waitlist" && primaryService ? (
+                    <Link href={`/commissions/${primaryService.id}/request`} className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum">Request art</Link>
+                  ) : null}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -96,20 +102,32 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
           {active === "portfolio" && (
             <>
               <CreatedArtistWork artistId={id} />
-              {portfolio.length ? <div className="columns-2 gap-4">{portfolio.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} />)}</div> : <EmptyState icon={ImageSquare} title="No public portfolio yet" description="This artist has not published portfolio work." />}
+              {portfolio.length ? (
+                <div className="columns-2 gap-4">{portfolio.map((artwork) => <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} />)}</div>
+              ) : isVisitorArtist(artist.id) ? null : (
+                <EmptyState icon={ImageSquare} title="No public portfolio yet" description="This artist has not published portfolio work." />
+              )}
             </>
           )}
           {active === "posts" && <><CreatedArtistPosts artistId={id} /><PostList artistId={id} /></>}
-          {active === "commissions" && <><CreatedArtistServices artistId={id} /><ServiceList artistId={id} /></>}
+          {active === "commissions" && (isVisitorArtist(artist.id) ? <EmptyState icon={ImageSquare} title="No commission services" description="This profile is for drawings. Seeded artists still take requests." /> : <><CreatedArtistServices artistId={id} /><ServiceList artistId={id} /></>)}
           {active === "reviews" && <ReviewList artistId={id} />}
           {active === "about" && <AboutRules artistId={id} />}
         </div>
         <aside>
-          <div className="rounded-3xl border border-black/[0.07] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between"><h2 className="text-lg font-bold">Commission services</h2><StatusPill status={artist.availability} /></div>
-            {artistServices.length ? <div className="mt-3 divide-y divide-black/[0.07]">{artistServices.map((service) => <Link href={`/commissions/${service.id}`} key={service.id} className="block py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum"><h3 className="font-bold">{service.title}</h3><p className="mt-1 line-clamp-2 text-sm leading-5 text-black/50">{service.description}</p><div className="mt-3 flex items-center justify-between text-sm"><span className="text-black/45">{service.turnaround} · {service.revisions} revision{service.revisions === 1 ? "" : "s"}</span><strong>From ${service.startingPrice}</strong></div></Link>)}</div> : <p className="py-8 text-center text-sm text-black/45">No active services right now.</p>}
-            <div className="mt-3"><AvailabilityCta availability={artist.availability} artistId={artist.id} serviceId={primaryService?.id} slots={artist.slots} href={primaryService ? `/commissions/${primaryService.id}/request` : undefined} /></div>
-          </div>
+          {isVisitorArtist(artist.id) ? (
+            <div className="rounded-3xl border border-black/[0.07] bg-white p-5 shadow-sm">
+              <h2 className="text-lg font-bold">Keep drawing</h2>
+              <p className="mt-2 text-sm leading-6 text-black/55">Publish another piece, or draw back a public replay. No follower counts. No open DMs.</p>
+              <Link href="/create/draw" className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">Open the studio</Link>
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-black/[0.07] bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between"><h2 className="text-lg font-bold">Commission services</h2><StatusPill status={artist.availability} /></div>
+              {artistServices.length ? <div className="mt-3 divide-y divide-black/[0.07]">{artistServices.map((service) => <Link href={`/commissions/${service.id}`} key={service.id} className="block py-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum"><h3 className="font-bold">{service.title}</h3><p className="mt-1 line-clamp-2 text-sm leading-5 text-black/50">{service.description}</p><div className="mt-3 flex items-center justify-between text-sm"><span className="text-black/45">{service.turnaround} · {service.revisions} revision{service.revisions === 1 ? "" : "s"}</span><strong>From ${service.startingPrice}</strong></div></Link>)}</div> : <p className="py-8 text-center text-sm text-black/45">No active services right now.</p>}
+              <div className="mt-3"><AvailabilityCta availability={artist.availability} artistId={artist.id} serviceId={primaryService?.id} slots={artist.slots} href={primaryService ? `/commissions/${primaryService.id}/request` : undefined} /></div>
+            </div>
+          )}
           {artist.accountType === "protected-teen" && <div className="mt-4"><ProtectedAccountNotice /></div>}
         </aside>
       </section>

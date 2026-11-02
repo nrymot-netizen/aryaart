@@ -27,4 +27,4 @@ Read in this order before writing code. Do not assume a blank product; the mock 
 
 Do not reopen Phases 0–10 unless fixing a regression.
 
-Phase 7 slice 1 (public drawings) is in progress. Do not start real auth, cards, or order sync unless product asks. Provenance certificates and Playwright e2e remain later.
+Keep the visitor loop usable: Watch both → Draw back → publish. Do not start real auth, cards, or order sync unless product asks. Provenance certificates and Playwright e2e remain later.

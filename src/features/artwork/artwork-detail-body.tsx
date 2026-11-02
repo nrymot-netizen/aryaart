@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { artists, artworks, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
+import { artworks, getArtist, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
+import { isVisitorArtist } from "@/lib/published/artist";
 import { getChallenge } from "@/data/seed-challenges";
 import { ArtworkStage } from "@/features/artwork/artwork-identity";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
@@ -42,7 +43,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
           <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-2xl bg-white p-3"><dt className="text-black/45">Style</dt><dd className="font-bold">{artwork.style}</dd></div>
             <div className="rounded-2xl bg-white p-3"><dt className="text-black/45">Subject</dt><dd className="font-bold">{subjectLabel(artwork.subject)}</dd></div>
-            <div className="rounded-2xl bg-white p-3"><dt className="text-black/45">Starting at</dt><dd className="font-bold">${artwork.price}</dd></div>
+            {isVisitorArtist(artist.id) ? null : <div className="rounded-2xl bg-white p-3"><dt className="text-black/45">Starting at</dt><dd className="font-bold">${artwork.price}</dd></div>}
             <div className="rounded-2xl bg-white p-3"><dt className="text-black/45">Published</dt><dd className="font-bold">{formatDate(artwork.publishedAt)}</dd></div>
           </dl>
           <div className="mt-4 flex flex-wrap gap-2">{artwork.tags.map((tag) => <span key={tag} className="rounded-full bg-mist px-3 py-1 text-xs font-semibold text-plum">#{tag}</span>)}</div>
@@ -83,11 +84,19 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
               </ul>
             </div>
           )}
-          <div className="mt-8 rounded-3xl border border-black/[0.07] bg-white p-5">
-            <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold">Commission this artist</h2><StatusPill status={artist.availability} slots={artist.slots} /></div>
-            {primaryService && <p className="mt-2 text-sm text-black/50">{primaryService.title} from ${primaryService.startingPrice}</p>}
-            <div className="mt-4"><AvailabilityCta availability={artist.availability} artistId={artist.id} serviceId={primaryService?.id} slots={artist.slots} href={primaryService ? `/commissions/${primaryService.id}/request` : `/artists/${artist.id}?tab=commissions`} /></div>
-          </div>
+          {isVisitorArtist(artist.id) ? (
+            <div className="mt-8 rounded-3xl border border-black/[0.07] bg-white p-5">
+              <h2 className="text-lg font-bold">Draw the next one</h2>
+              <p className="mt-2 text-sm text-black/55">Open a blank canvas, or draw back this replay. The artist keeps the copyright.</p>
+              <Link href="/create/draw" className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-bold text-white">Start a drawing</Link>
+            </div>
+          ) : (
+            <div className="mt-8 rounded-3xl border border-black/[0.07] bg-white p-5">
+              <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-bold">Commission this artist</h2><StatusPill status={artist.availability} slots={artist.slots} /></div>
+              {primaryService && <p className="mt-2 text-sm text-black/50">{primaryService.title} from ${primaryService.startingPrice}</p>}
+              <div className="mt-4"><AvailabilityCta availability={artist.availability} artistId={artist.id} serviceId={primaryService?.id} slots={artist.slots} href={primaryService ? `/commissions/${primaryService.id}/request` : `/artists/${artist.id}?tab=commissions`} /></div>
+            </div>
+          )}
           {artist.accountType === "protected-teen" && <div className="mt-4"><ProtectedAccountNotice compact /></div>}
         </div>
       </div>
@@ -95,7 +104,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
         <section className="mt-16">
           <h2 className="font-[family-name:var(--font-display)] text-3xl">Related work</h2>
           <div className="mt-6 columns-2 gap-4 sm:columns-3">{relatedWork.map((item) => {
-            const relatedArtist = artists.find((entry) => entry.id === item.artistId);
+            const relatedArtist = getArtist(item.artistId);
             return relatedArtist ? <ArtworkCard key={item.id} artwork={item} artist={relatedArtist} /> : null;
           })}</div>
         </section>

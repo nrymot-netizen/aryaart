@@ -25,7 +25,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      <PageIntro eyebrow={persona.role === "artist" ? "Incoming & active" : "Your commissions"} title="Orders" description="Requests, active projects, files, and history — one workspace per commission, never an open inbox." />
+      <PageIntro eyebrow={persona.artistId === "you" || persona.role !== "artist" ? "Your commissions" : "Incoming & active"} title="Orders" description="Requests, active projects, files, and history — one workspace per commission, never an open inbox." />
       <div className="mx-auto max-w-4xl px-4 pb-20 sm:px-6">
         <div className="mb-5 flex gap-2">
           {(["all", "active", "done"] as const).map((item) => <button key={item} onClick={() => setFilter(item)} className={`rounded-full px-4 py-2 text-sm font-semibold ${filter === item ? "bg-ink text-white" : "bg-white"}`}>{item}</button>)}
@@ -34,7 +34,7 @@ export default function OrdersPage() {
           persona.role === "parent-preview" ? (
             <EmptyState icon={Receipt} title="No teen requests waiting" description="Load a Riley request, or have Riley submit one. Approvals are simulated." action={{ label: "Load a pending teen request", onClick: () => dispatch({ type: "load-scenario", scenario: "parent-approval" }) }} />
           ) : (
-          <EmptyState icon={Receipt} title="No orders in this view" description="Request a LunaLines portrait to walk the full demo, or switch personas to see the other side." action={{ label: "Request LunaLines", onClick: () => { window.location.href = "/commissions/anime-portrait/request"; } }} />
+          <EmptyState icon={Receipt} title="No commissions yet" description="Draw something of your own, or request a seeded artist if you want to walk that loop." action={{ label: "Start a drawing", href: "/create/draw" }} />
           )
         ) : (
           <div className="space-y-3">

@@ -70,4 +70,4 @@ Public URLs are flat App Router routes (no `(marketplace)` groups yet). Domain l
 
 ## What “done” means right now
 
-A stranger can Watch both → Draw back → publish in this browser, and a stakeholder can still complete Discover → request Luna → accept → demo checkout → draw → review by switching Review as. With Supabase env, another phone can open the same `/art/art-*` or pair URL. Dual opt-in process stories must not leak briefs. Auth, payments, and order sync stay later.
+A stranger can Watch both → Draw back → publish, and a stakeholder can still complete Discover → request Luna → accept → demo checkout → draw → review by switching Review as. Dual opt-in process stories must not leak briefs. Auth, payments, and order sync stay later.

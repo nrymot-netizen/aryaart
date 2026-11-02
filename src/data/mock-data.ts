@@ -34,7 +34,7 @@ export const youArtist: Artist = {
   username: "you",
   displayName: "You",
   specialty: "Drawing on Arya",
-  bio: "This is your studio. Draw, publish, and draw back. Pieces stay in this browser, and can appear on other phones when the shared gallery is connected.",
+  bio: "Draw, publish, and draw back. You keep the copyright on what you make.",
   avatar: "/art/avatar-you.svg",
   accountType: "adult",
   styles: ["Anime", "Cute", "Fantasy"],
@@ -51,8 +51,8 @@ export const youArtist: Artist = {
     revisionPolicy: "This profile is for work you draw on Arya.",
     usageRights: "You keep the copyright on what you draw.",
     communicationBoundary: "No open DMs.",
-    expectedResponseTime: "This is your local studio.",
-    cancellationPolicy: "Reset demo clears local drawings.",
+    expectedResponseTime: "You’re drawing here.",
+    cancellationPolicy: "You can leave a piece up or start a new one anytime.",
   },
 };
 
