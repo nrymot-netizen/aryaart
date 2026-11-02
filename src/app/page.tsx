@@ -10,7 +10,7 @@ import { artistsAcceptingCommissions, hasActiveFilters, parseDiscoverySearchPara
 export default async function DiscoverPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const filters = parseDiscoverySearchParams(await searchParams);
   const filtered = searchCatalog(filters);
-  const recommended = rankDiscoveryCandidates(artworks, artists).slice(0, 8);
+  const recommended = rankDiscoveryCandidates(artworks, artists).slice(0, 6);
   const filteredMode = hasActiveFilters(filters);
 
   if (filteredMode) {

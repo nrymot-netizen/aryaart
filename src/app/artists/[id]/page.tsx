@@ -11,7 +11,7 @@ import { SaveArtistButton } from "@/features/saves/save-button";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { WaitlistButton } from "@/features/waitlist/waitlist-button";
 import { artists, getArtist, getArtistArt, getArtistPosts, getArtistServices, getArtwork } from "@/data/mock-data";
-import { isVisitorArtist } from "@/lib/published/artist";
+import { artistLabel, isVisitorArtist } from "@/lib/published/artist";
 import type { ArtistProfileTab } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { CreatedArtistWork } from "@/features/studio/created-artist-work";
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const artist = getArtist(id);
   if (!artist) return { title: "Artist not found" };
-  return { title: `@${artist.username}` };
+  return { title: artistLabel(artist) };
 }
 
 export default async function ArtistProfilePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
@@ -60,7 +60,7 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
             <Image src={artist.avatar} alt={`${artist.displayName} avatar`} width={144} height={144} className="size-28 rounded-[2rem] object-cover ring-4 ring-white sm:size-36" />
             <div className="mt-5 flex-1 sm:ml-7 sm:mt-0">
               <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <h1 className="text-3xl font-bold tracking-tight">@{artist.username}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{artistLabel(artist)}</h1>
                 {artist.accountType === "protected-teen" && <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-plum"><ShieldCheck size={15} weight="fill" />Parent supported</span>}
               </div>
               <p className="mt-1 text-lg text-black/60">{artist.displayName} · {artist.specialty}</p>

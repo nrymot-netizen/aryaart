@@ -56,3 +56,7 @@ export function shouldSharePublish(artistId: string) {
 export function isVisitorArtist(id: string) {
   return shouldSharePublish(id);
 }
+
+export function artistLabel(artist: { id: string; username: string; displayName: string }) {
+  return isVisitorArtist(artist.id) ? artist.displayName : `@${artist.username}`;
+}

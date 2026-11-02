@@ -197,7 +197,7 @@ function CreateDrawForm() {
             )}
             <Checkbox label="Offer commissions like this" checked={offer} onChange={(event) => setOffer(event.target.checked)} />
             {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
-            <Button type="submit" disabled={persona.role === "parent-preview" || Boolean(sourceId && !drawBackOk)} className="w-full">{drawBackOk ? "Publish draw-back" : challenge ? "Enter the challenge" : "Publish to portfolio"}</Button>
+            <Button type="submit" disabled={persona.role === "parent-preview" || Boolean(sourceId && !drawBackOk)} className="w-full">{drawBackOk ? "Publish draw-back" : challenge ? "Enter the challenge" : "Publish"}</Button>
           </section>
         )}
       />

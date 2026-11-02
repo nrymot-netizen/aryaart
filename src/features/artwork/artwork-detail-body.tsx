@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { artworks, getArtist, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
-import { isVisitorArtist } from "@/lib/published/artist";
+import { artistLabel, isVisitorArtist } from "@/lib/published/artist";
 import { getChallenge } from "@/data/seed-challenges";
 import { ArtworkStage } from "@/features/artwork/artwork-identity";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
@@ -37,7 +37,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
           <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-[0.95] sm:text-6xl">{artwork.title}</h1>
           <Link href={`/artists/${artist.id}`} className="mt-4 inline-flex items-center gap-3 rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">
             <ArtworkMedia src={artist.avatar} alt="" width={48} height={48} className="size-12 rounded-2xl object-cover" />
-            <span><strong className="block">@{artist.username}</strong><span className="text-sm text-black/50">{artist.specialty}</span></span>
+            <span><strong className="block">{artistLabel(artist)}</strong><span className="text-sm text-black/50">{artist.specialty}</span></span>
           </Link>
           <p className="mt-5 text-base leading-7 text-black/65">{artwork.description}</p>
           <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
@@ -47,7 +47,7 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
             <div className="rounded-2xl bg-white p-3"><dt className="text-black/45">Published</dt><dd className="font-bold">{formatDate(artwork.publishedAt)}</dd></div>
           </dl>
           <div className="mt-4 flex flex-wrap gap-2">{artwork.tags.map((tag) => <span key={tag} className="rounded-full bg-mist px-3 py-1 text-xs font-semibold text-plum">#{tag}</span>)}</div>
-          <p className="mt-4 text-xs text-black/45">Made with {artwork.tools.join(", ")}{artwork.aiDisclosure ? ". AI-assisted." : ". No generative AI."} · {artwork.format}</p>
+          <p className="mt-4 text-xs text-black/45">Made with {artwork.tools.join(", ")}. {artwork.aiDisclosure ? "AI-assisted." : "No generative AI."} · {artwork.format}</p>
           {challenge && (
             <div className="mt-6 rounded-3xl border border-plum/15 bg-mist/60 p-5">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">Entered {challenge.title}</p>

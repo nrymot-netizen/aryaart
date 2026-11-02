@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
 import { buildProcessLog } from "@/lib/domain/process-log";
-import { createPublisherHandle, isPublisherHandle, normalizePublishArtistId, shouldSharePublish } from "@/lib/published/artist";
+import { artistLabel, createPublisherHandle, isPublisherHandle, normalizePublishArtistId, shouldSharePublish } from "@/lib/published/artist";
 import { memoryPublishedStore, resetMemoryPublishedStore } from "@/lib/published/memory";
 import { publishRequestSchema } from "@/lib/published/schema";
 import type { Artwork, DrawBackPair } from "@/types";
@@ -52,6 +52,8 @@ describe("publisher handles", () => {
     expect(shouldSharePublish("luna")).toBe(false);
     expect(normalizePublishArtistId("you", "ink-tester1")).toBe("ink-tester1");
     expect(normalizePublishArtistId("luna", "ink-tester1")).toBe("luna");
+    expect(artistLabel({ id: "you", username: "you", displayName: "You" })).toBe("You");
+    expect(artistLabel({ id: "luna", username: "LunaLines", displayName: "Luna Chen" })).toBe("@LunaLines");
   });
 });
 

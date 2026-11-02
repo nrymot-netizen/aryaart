@@ -26,10 +26,10 @@ export function drawBackPairHref(pairId: string, options?: { watch?: boolean }) 
   return options?.watch ? `/draw-back/${pairId}?watch=1` : `/draw-back/${pairId}`;
 }
 
-export function pairShareCopy(replyTitle: string, replyUsername: string, sourceUsername: string) {
+export function pairShareCopy(replyTitle: string, replyLabel: string, sourceLabel: string) {
   return {
     title: replyTitle,
-    credit: `@${replyUsername} drew back @${sourceUsername}`,
+    credit: `${replyLabel} drew back ${sourceLabel}`,
     marks: "Watch both · Arya Art",
   };
 }

@@ -180,11 +180,13 @@ export function ArtworkShareActions({
   return (
     <div className="mt-4 space-y-2">
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => void share("copy")}><Copy size={16} /> Copy share card</Button>
+        <Button variant="secondary" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy link</Button>
+        <Button variant="ghost" onClick={() => void share("copy")}><Copy size={16} /> Copy card</Button>
         <Button variant="ghost" onClick={() => void share("download")}><DownloadSimple size={16} /> Download card</Button>
-        {processLogJson && <Button variant="ghost" onClick={downloadLog}><DownloadSimple size={16} /> Download replay JSON</Button>}
-        <Button variant="ghost" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy link</Button>
       </div>
+      {processLogJson && (
+        <button type="button" onClick={downloadLog} className="text-xs font-semibold text-black/40 hover:text-plum">Download replay JSON</button>
+      )}
       {status && <p className="text-xs font-semibold text-plum" role="status">{status}</p>}
     </div>
   );
@@ -254,9 +256,9 @@ export function PairShareActions({
   return (
     <div className="mt-4 space-y-2">
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => void share("copy")}><Copy size={16} /> Copy pair card</Button>
+        <Button variant="secondary" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy link</Button>
+        <Button variant="ghost" onClick={() => void share("copy")}><Copy size={16} /> Copy card</Button>
         <Button variant="ghost" onClick={() => void share("download")}><DownloadSimple size={16} /> Download card</Button>
-        <Button variant="ghost" onClick={() => void copyLink()}><LinkSimple size={16} /> Copy pair link</Button>
       </div>
       {status && <p className="text-xs font-semibold text-plum" role="status">{status}</p>}
     </div>

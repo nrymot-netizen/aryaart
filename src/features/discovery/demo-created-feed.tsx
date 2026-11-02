@@ -6,6 +6,7 @@ import { useDemo } from "@/features/demo/demo-provider";
 import { usePublished } from "@/features/published/published-provider";
 import { ArtworkMasonry } from "@/features/discovery/discover-sections";
 import { artworkMatchesFilters } from "@/lib/domain/discovery";
+import { isVisitorArtist } from "@/lib/published/artist";
 import type { DiscoveryFilters } from "@/types";
 
 export function DemoCreatedFeed({ filters }: { filters?: DiscoveryFilters }) {
@@ -15,7 +16,7 @@ export function DemoCreatedFeed({ filters }: { filters?: DiscoveryFilters }) {
   const merged = [...published.artworks, ...state.createdArtworks.filter((item) => !published.artworks.some((shared) => shared.id === item.id))];
   const artworks = merged.filter((artwork) => {
     const artist = getArtist(artwork.artistId);
-    if (!artist) return false;
+    if (!artist || !isVisitorArtist(artwork.artistId)) return false;
     return !filters || artworkMatchesFilters(artwork, artist, filters, services);
   });
   if (!artworks.length) return null;

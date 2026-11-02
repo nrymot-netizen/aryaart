@@ -128,12 +128,12 @@ describe("draw-back pairs", () => {
   });
 
   it("keeps pair share copy about the reply, not ownership", () => {
-    expect(pairShareCopy("Paper lantern", "SketchMaya", "LunaLines")).toEqual({
+    expect(pairShareCopy("Paper lantern", "@SketchMaya", "@LunaLines")).toEqual({
       title: "Paper lantern",
       credit: "@SketchMaya drew back @LunaLines",
       marks: "Watch both · Arya Art",
     });
-    expect(pairShareCopy("Paper lantern", "SketchMaya", "LunaLines").credit).not.toMatch(/own|NFT|mint/i);
+    expect(pairShareCopy("Paper lantern", "@SketchMaya", "@LunaLines").credit).not.toMatch(/own|NFT|mint/i);
   });
 
   it("records draw_back_watched once per pair", () => {

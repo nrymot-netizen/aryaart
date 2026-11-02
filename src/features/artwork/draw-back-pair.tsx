@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Pause, Play } from "@phosphor-icons/react";
 import { artworks, getArtist, getArtistServices } from "@/data/mock-data";
+import { artistLabel, isVisitorArtist } from "@/lib/published/artist";
 import { useDemo } from "@/features/demo/demo-provider";
 import { usePublished } from "@/features/published/published-provider";
 import { ReplayPlayer, type ReplayPlayerHandle } from "@/features/artwork/replay-player";
@@ -119,7 +120,7 @@ export function DrawBackPairBody() {
     if (finished.current >= 2) setWatching(false);
   };
 
-  const share = pairShareCopy(reply.title, replyArtist.username, sourceArtist.username);
+  const share = pairShareCopy(reply.title, artistLabel(replyArtist), artistLabel(sourceArtist));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
@@ -127,7 +128,7 @@ export function DrawBackPairBody() {
       <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-plum">Draw-back</p>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl leading-[0.95] sm:text-5xl">{reply.title}</h1>
       <p className="mt-3 max-w-2xl text-black/55">
-        @{replyArtist.username} drew back @{sourceArtist.username}. Watch both pieces get drawn. Request the artist.
+        {artistLabel(replyArtist)} drew back {artistLabel(sourceArtist)}. Watch both pieces get drawn.
       </p>
       <div className="mt-6">
         <Button onClick={watchBoth} aria-label={watching ? "Stop both replays" : "Watch both get drawn"}>
@@ -159,7 +160,7 @@ export function DrawBackPairBody() {
           <figcaption className="mt-2 text-sm text-black/55">
             <strong className="text-ink">{source.title}</strong>
             {" · "}
-            <Link href={`/artists/${sourceArtist.id}`} className="font-bold text-plum">@{sourceArtist.username}</Link>
+            <Link href={`/artists/${sourceArtist.id}`} className="font-bold text-plum">{artistLabel(sourceArtist)}</Link>
           </figcaption>
         </figure>
         <figure>
@@ -176,7 +177,7 @@ export function DrawBackPairBody() {
           <figcaption className="mt-2 text-sm text-black/55">
             <strong className="text-ink">{reply.title}</strong>
             {" · "}
-            <Link href={`/artists/${replyArtist.id}`} className="font-bold text-plum">@{replyArtist.username}</Link>
+            <Link href={`/artists/${replyArtist.id}`} className="font-bold text-plum">{artistLabel(replyArtist)}</Link>
           </figcaption>
         </figure>
       </div>
@@ -187,24 +188,28 @@ export function DrawBackPairBody() {
         </Link>
       </div>
       <div className="mt-10 grid gap-4 md:grid-cols-2">
-        <RequestCard
-          artistId={replyArtist.id}
-          username={replyArtist.username}
-          availability={replyArtist.availability}
-          slots={replyArtist.slots}
-          serviceId={replyService?.id}
-          serviceTitle={replyService?.title}
-          startingPrice={replyService?.startingPrice}
-        />
-        <RequestCard
-          artistId={sourceArtist.id}
-          username={sourceArtist.username}
-          availability={sourceArtist.availability}
-          slots={sourceArtist.slots}
-          serviceId={sourceService?.id}
-          serviceTitle={sourceService?.title}
-          startingPrice={sourceService?.startingPrice}
-        />
+        {!isVisitorArtist(replyArtist.id) && (
+          <RequestCard
+            artistId={replyArtist.id}
+            label={artistLabel(replyArtist)}
+            availability={replyArtist.availability}
+            slots={replyArtist.slots}
+            serviceId={replyService?.id}
+            serviceTitle={replyService?.title}
+            startingPrice={replyService?.startingPrice}
+          />
+        )}
+        {!isVisitorArtist(sourceArtist.id) && (
+          <RequestCard
+            artistId={sourceArtist.id}
+            label={artistLabel(sourceArtist)}
+            availability={sourceArtist.availability}
+            slots={sourceArtist.slots}
+            serviceId={sourceService?.id}
+            serviceTitle={sourceService?.title}
+            startingPrice={sourceService?.startingPrice}
+          />
+        )}
       </div>
     </div>
   );
@@ -212,7 +217,7 @@ export function DrawBackPairBody() {
 
 function RequestCard({
   artistId,
-  username,
+  label,
   availability,
   slots,
   serviceId,
@@ -220,7 +225,7 @@ function RequestCard({
   startingPrice,
 }: {
   artistId: string;
-  username: string;
+  label: string;
   availability: "open" | "limited" | "waitlist" | "closed";
   slots?: number;
   serviceId?: string;
@@ -230,7 +235,7 @@ function RequestCard({
   return (
     <div className="rounded-3xl border border-black/[0.07] bg-white p-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">Request @{username}</h2>
+        <h2 className="text-lg font-bold">Request {label}</h2>
         <StatusPill status={availability} slots={slots} />
       </div>
       {serviceTitle && startingPrice != null && <p className="mt-2 text-sm text-black/50">{serviceTitle} from ${startingPrice}</p>}

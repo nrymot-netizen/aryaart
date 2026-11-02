@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkle } from "@phosphor-icons/react/dist/ssr";
 import type { Artist, Artwork, DiscoveryFilters } from "@/types";
+import { getArtist } from "@/data/mock-data";
 import { ArtworkCard } from "@/components/artwork-card";
 import { ArtistCard } from "@/components/artist-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -28,7 +29,7 @@ export function ArtworkMasonry({ artworks, artists, empty, filters }: { artworks
     return <EmptyState icon={Sparkle} title={empty?.title ?? "No artwork found"} description={empty?.description ?? (filters ? describeFilterConstraints(filters) : "Try a different search or style.")} />;
   }
   return <div className="columns-2 gap-3 sm:columns-3 sm:gap-5 lg:columns-4">{artworks.map((artwork, index) => {
-    const artist = artists.find((item) => item.id === artwork.artistId);
+    const artist = artists.find((item) => item.id === artwork.artistId) ?? getArtist(artwork.artistId);
     return artist ? <ArtworkCard key={artwork.id} artwork={artwork} artist={artist} priority={index < 2} /> : null;
   })}</div>;
 }
@@ -74,10 +75,10 @@ export function DiscoverSomeoneNew({ artists }: { artists: Artist[] }) {
 }
 
 export function FilteredDiscoverResults({ artworks, artists, filters }: { artworks: Artwork[]; artists: Artist[]; filters: DiscoveryFilters }) {
-  const heading = filters.styles[0] ?? (filters.maxBudget === 50 ? "Art under $50" : filters.q ? `Results for “${filters.q}”` : "Recommended for you");
+  const heading = filters.styles[0] ?? (filters.maxBudget === 50 ? "Art under $50" : filters.q ? `Results for “${filters.q}”` : "In the catalog");
   return (
     <section className="mx-auto max-w-[1480px] px-4 pb-16 sm:px-6 lg:px-10">
-      <div className="mb-6 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">{hasActiveFilters(filters) ? "Filtered" : "Made with intention"}</p><h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl sm:text-4xl">{heading}</h2></div><span className="text-sm text-black/45">{artworks.length} pieces</span></div>
+      <div className="mb-6 flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">{hasActiveFilters(filters) ? "Filtered" : "Catalog"}</p><h2 className="mt-1 font-[family-name:var(--font-display)] text-3xl sm:text-4xl">{heading}</h2></div><span className="text-sm text-black/45">{artworks.length} pieces</span></div>
       <ArtworkMasonry artworks={artworks} artists={artists} filters={filters} />
     </section>
   );

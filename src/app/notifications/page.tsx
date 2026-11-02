@@ -13,10 +13,10 @@ export default function NotificationsPage() {
 
   return (
     <>
-      <PageIntro eyebrow="Stay in the loop" title="Notifications" description="Every ping links to the next action. Nothing here is an open DM." />
+      <PageIntro eyebrow="Stay in the loop" title="Notifications" description="Commission pings land here. Drawing does not open a message thread." />
       <div className="mx-auto max-w-3xl px-4 pb-20 sm:px-6">
         {items.length > 0 && <Button variant="ghost" className="mb-4" onClick={() => dispatch({ type: "mark-read" })}>Mark all read</Button>}
-        {items.length === 0 ? <EmptyState icon={Bell} title="You’re caught up" description="Request activity, waitlist movement, and parent approvals will land here." /> : (
+        {items.length === 0 ? <EmptyState icon={Bell} title="You’re caught up" description="Nothing waiting. Start a drawing, or request a seeded artist if you want this list to fill." action={{ label: "Start a drawing", href: "/create/draw" }} /> : (
           <div className="space-y-2">
             {items.map((item) => (
               <Link key={item.id} href={item.href} onClick={() => dispatch({ type: "mark-read", id: item.id })} className={`block rounded-3xl border p-5 ${item.read ? "border-transparent bg-white/60" : "border-black/[0.07] bg-white"}`}>

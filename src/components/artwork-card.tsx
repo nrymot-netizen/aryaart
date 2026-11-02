@@ -4,6 +4,7 @@ import { ArtworkMedia } from "./artwork-media";
 import Link from "next/link";
 import type { Artwork, Artist } from "@/types";
 import { ARYA_CANVAS_TOOL } from "@/lib/domain/canvas";
+import { artistLabel } from "@/lib/published/artist";
 import { SaveArtworkButton } from "@/features/saves/save-button";
 
 export function ArtworkCard({ artwork, artist, priority = false }: { artwork: Artwork; artist: Artist; priority?: boolean }) {
@@ -19,7 +20,7 @@ export function ArtworkCard({ artwork, artist, priority = false }: { artwork: Ar
       </div>
       <div className="px-1 pt-3">
         <h3 className="font-bold leading-tight"><Link href={`/art/${artwork.id}`} className="hover:text-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-plum">{artwork.title}</Link></h3>
-        <Link href={`/artists/${artist.id}`} className="mt-1 block text-sm text-black/55 hover:text-plum">@{artist.username}</Link>
+        <Link href={`/artists/${artist.id}`} className="mt-1 block text-sm text-black/55 hover:text-plum">{artistLabel(artist)}</Link>
       </div>
     </article>
   );
