@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { createDemoState, parseDemoState, toggleSavedId } from "@/features/demo/demo-state";
+import { YOU_PERSONA_ID, resolvePersonaId } from "@/features/demo/demo-personas";
 
 describe("demo persistence helpers", () => {
+  it("defaults new visitors to You and migrates leftover Alex snapshots", () => {
+    expect(createDemoState().personaId).toBe(YOU_PERSONA_ID);
+    expect(resolvePersonaId("buyer-alex")).toBe(YOU_PERSONA_ID);
+    expect(resolvePersonaId("luna")).toBe("luna");
+    const older = createDemoState("buyer-alex");
+    expect(older.personaId).toBe("buyer-alex");
+    expect(parseDemoState(JSON.stringify(older)).personaId).toBe(YOU_PERSONA_ID);
+  });
+
   it("toggles saved artwork and artist ids", () => {
     expect(toggleSavedId([], "moon-garden")).toEqual(["moon-garden"]);
     expect(toggleSavedId(["moon-garden"], "moon-garden")).toEqual([]);

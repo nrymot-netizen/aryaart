@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useDemo } from "@/features/demo/demo-provider";
 import { PersonaContextBanner } from "@/features/demo/persona-context-banner";
 import { DemoEventInspector } from "@/features/demo/demo-event-inspector";
+import { demoPersonas } from "@/features/demo/demo-personas";
 
 const protections = [
   { id: "contact", label: "Block contact sharing on protected threads", hint: "Email, phone, and off-platform handles stay blocked." },
@@ -16,7 +17,7 @@ const protections = [
 ];
 
 export default function SettingsPage() {
-  const { persona, state, dispatch } = useDemo();
+  const { persona, state, dispatch, setPersonaId, resetDemo } = useDemo();
   const locked = persona.accountType === "protected-teen";
   const pending = state.parentApprovals.filter((item) => item.status === "pending");
 
@@ -57,7 +58,21 @@ export default function SettingsPage() {
             )}
           </section>
         )}
-        <p className="text-xs leading-5 text-black/40">13+ only. This is not age verification. Payments and parent approval are simulated. No moderator is on call.</p>
+        <section className="rounded-4xl bg-white p-5">
+          <h2 className="font-bold">Review as</h2>
+          <p className="mt-1 text-sm text-black/50">Demo roles for the commission loop. People drawing stay as You.</p>
+          <ul className="mt-3 space-y-2">
+            {demoPersonas.map((item) => (
+              <li key={item.id}>
+                <Button variant={item.id === persona.id ? "primary" : "ghost"} className="w-full justify-start" onClick={() => setPersonaId(item.id)}>
+                  {item.label}
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <Button variant="ghost" className="mt-3 w-full" onClick={() => resetDemo()}>Reset this browser</Button>
+        </section>
+        <p className="text-xs leading-5 text-black/40">13+ only. This is not age verification. Payments and parent approval are simulated. No moderator is on call. Two phones do not share drawings yet.</p>
         <DemoEventInspector />
       </div>
     </>

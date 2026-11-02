@@ -28,6 +28,33 @@ const teenRules = {
   cancellationPolicy: "Requests can be withdrawn before work starts. Parent approval is needed for paid steps.",
 };
 
+export const youArtist: Artist = {
+  id: "you",
+  username: "you",
+  displayName: "You",
+  specialty: "Drawing on Arya",
+  bio: "This is your studio on this device. Draw, publish, and draw back. Work stays in this browser until a shared backend exists.",
+  avatar: "/art/avatar-you.svg",
+  accountType: "adult",
+  styles: ["Anime", "Cute", "Fantasy"],
+  availability: "closed",
+  startingPrice: 0,
+  rating: 0,
+  completedCommissions: 0,
+  responseTime: "You’re drawing here",
+  emerging: false,
+  exposureRank: 99,
+  rules: {
+    acceptedSubjects: ["Your own drawings"],
+    declinedSubjects: ["Off-platform contact"],
+    revisionPolicy: "This profile is for work you draw on Arya.",
+    usageRights: "You keep the copyright on what you draw.",
+    communicationBoundary: "No open DMs.",
+    expectedResponseTime: "This is your local studio.",
+    cancellationPolicy: "Reset demo clears local drawings.",
+  },
+};
+
 export const artists: Artist[] = [
   { id: "luna", username: "LunaLines", displayName: "Luna Chen", specialty: "Anime & fantasy illustrator", bio: "Dreamy character art, magical worlds, and expressive portraits.", avatar: "/art/avatar-luna.svg", accountType: "adult", styles: ["Anime", "Fantasy"], availability: "limited", slots: 2, startingPrice: 45, rating: 4.9, completedCommissions: 38, responseTime: "Usually within 24 hours", emerging: false, exposureRank: 2, rules: lunaRules },
   { id: "maya", username: "SketchMaya", displayName: "Maya", specialty: "Cute characters & pets", bio: "Soft shapes, warm colors, and a lot of personality.", avatar: "/art/avatar-maya.svg", accountType: "protected-teen", styles: ["Cute", "Watercolor"], availability: "waitlist", startingPrice: 20, rating: 4.8, completedCommissions: 14, responseTime: "Usually within 2 days", emerging: true, exposureRank: 4, rules: { ...teenRules, acceptedSubjects: ["Pets", "Cute characters", "Cozy watercolor scenes"] } },
@@ -124,7 +151,7 @@ export const notifications: Notification[] = [
   { id: "n2", profileId: "buyer-alex", title: "Waitlist update", detail: "You moved up to #4 on SketchMaya’s list.", href: "/artists/maya", type: "waitlist", read: false, createdAt: "2026-08-17T09:00:00Z" },
 ];
 
-export const getArtist = (id: string) => artists.find((artist) => artist.id === id);
+export const getArtist = (id: string) => artists.find((artist) => artist.id === id) ?? (id === youArtist.id ? youArtist : undefined);
 export const getArtwork = (id: string) => artworks.find((artwork) => artwork.id === id);
 export const getService = (id: string) => services.find((service) => service.id === id);
 export const getArtistArt = (id: string) => artworks.filter((artwork) => artwork.artistId === id);

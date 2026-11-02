@@ -6,7 +6,7 @@ Use this before calling a phase done. Desktop and 360px mobile. Demo state: Rese
 
 Time box: about 10 minutes.
 
-1. Open `/` as **Alex · Buyer**. Confirm art leads the page. On a phone, a draw-back pair should sit in the first fold — not the closed Night lantern module.
+1. Open `/` as **You**. The first fold is the lantern pair with Watch both and Draw back. Header says You, not Alex. Create publishes without switching personas.
 2. Open LunaLines → **Anime Character Portrait** → Request commission.
 3. Complete the wizard (brief, personal use, references optional). Submit. Status: Awaiting artist.
 4. Switch to **LunaLines · Artist**. Studio or Orders → Accept.

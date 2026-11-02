@@ -5,11 +5,11 @@ import { artworks, getArtist } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
 import { drawBackPairHref, findDemoArtwork, publicDrawBacks } from "@/lib/domain/draw-back";
 
-export function DiscoverDrawBacks() {
+export function DiscoverDrawBacks({ excludePairId }: { excludePairId?: string } = {}) {
   const { state, hydrated } = useDemo();
   if (!hydrated) return null;
   const catalog = [...state.createdArtworks, ...artworks];
-  const pairs = publicDrawBacks(state.drawBacks ?? [], catalog, state.processLogs);
+  const pairs = publicDrawBacks(state.drawBacks ?? [], catalog, state.processLogs).filter((pair) => pair.id !== excludePairId);
   if (!pairs.length) return null;
   return (
     <section className="mx-auto max-w-[1480px] px-4 pb-10 sm:px-6 sm:pb-16 lg:px-10">

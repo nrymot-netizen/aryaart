@@ -1,6 +1,6 @@
 # Current state
 
-**As of:** 1 November 2026  
+**As of:** 1 November 2026 (evening)  
 **Repo:** [nrymot-netizen/aryaart](https://github.com/nrymot-netizen/aryaart) `main`  
 **Live:** https://aryaart.vercel.app (Hobby, Git-connected)  
 **Persistence:** `localStorage` key `arya-demo-state-v2` (`DEMO_STATE_VERSION = 2`)
@@ -11,7 +11,7 @@ This is a product-validation demo, not a production marketplace. Treat it as the
 
 | Area | What exists |
 | --- | --- |
-| Discover / search | Artwork-first feed, URL filters, saves (no like counts), Drawn on Arya, draw-backs in the first fold, closed Night lantern archive, Sketch to final process stories |
+| Discover / search | Home is the seeded pair (Watch both / Draw back). Catalog search is a secondary path. Drawn on Arya + one recommended grid. No like counts. |
 | Artists | Profiles, tabs, rules, availability CTAs, waitlist |
 | Commissions | Services, request wizard (including buyer reference sketch), accept/counter/decline, simulated checkout |
 | Workspace | Order messages (no DMs), files, milestones, sketch/final, reviews |
@@ -23,7 +23,7 @@ This is a product-validation demo, not a production marketplace. Treat it as the
 | Process stories | After final acceptance, Share process is default off. Both people opt in → public sketch+final stills, optional final replay. Cards stay 2-up on phone. Brief/messages/references stay private. Buyer caption is scanned for contact. Protected-teen work is not auto-posted. |
 | Studio | Availability, incoming work, waitlist demand, open slots, created art/services, simulated ledger, first paid piece moment, `/studio/services` |
 | Safety | 13+ notice (not verification), protected-teen chrome, contact block on protected threads (messages + brief/notes), report / block / leave stubs, review report/hide. Still no production moderation. See [SAFETY.md](./SAFETY.md). |
-| Demo | Persona switcher: Alex, Riley (teen buyer), LunaLines, SketchMaya, Parent preview. Reset demo. Identity events live under Settings, not Notifications. Safety settings at `/settings`. |
+| Demo | New visitors are **You** (local artist). They can draw and publish without switching. Alex / Riley / Luna / Maya / Parent stay under Review as for the commission loop. Identity events on Settings. |
 
 ## As-built layout (do not reshuffle unless a phase requires it)
 
@@ -69,4 +69,4 @@ Public URLs are flat App Router routes (no `(marketplace)` groups yet). Domain l
 
 ## What “done” means right now
 
-A stakeholder can complete Discover → request Luna → accept → demo checkout → draw sketch/final → review, and an artist can draw and publish with replay + share, **on the live Vercel URL**, with demo personas. That loop is the regression baseline. Dual opt-in process stories must not leak briefs. Do not start real backend until product asks.
+A stranger can Watch both → Draw back → publish in this browser, and a stakeholder can still complete Discover → request Luna → accept → demo checkout → draw → review by switching Review as. Drawings do not sync across phones. Dual opt-in process stories must not leak briefs. Shared accounts / Phase 7 stay blocked until we start a real backend.

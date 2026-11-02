@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CurrencyDollar, Eye, PaintBrush, TrendUp } from "@phosphor-icons/react";
-import { artists, getArtistServices, getService } from "@/data/mock-data";
+import { getArtist, getArtistServices, getService } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
 import { calculateSimulatedBalance } from "@/lib/domain/ledger";
 import { orderStatusLabel } from "@/lib/domain/orders";
@@ -17,13 +17,13 @@ export default function StudioPage() {
   if (persona.role !== "artist") {
     return (
       <>
-        <PageIntro eyebrow="Artist studio" title="Switch into an artist" description="Studio is the artist desk. Use the demo switcher to become LunaLines or SketchMaya." />
+        <PageIntro eyebrow="Artist studio" title="Switch into an artist" description="Studio is the artist desk. Review as LunaLines or SketchMaya from Settings." />
         <PersonaContextBanner />
       </>
     );
   }
   const artistId = persona.artistId ?? "luna";
-  const artist = artists.find((item) => item.id === artistId);
+  const artist = getArtist(artistId);
   const availability = state.artistAvailability[artistId]?.availability ?? artist?.availability ?? "open";
   const slots = state.artistAvailability[artistId]?.slots ?? artist?.slots;
   const balance = calculateSimulatedBalance(state.ledger, artistId);

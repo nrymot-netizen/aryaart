@@ -33,7 +33,7 @@ function CreateDrawForm() {
   const searchParams = useSearchParams();
   const { persona, dispatch, state, hydrated } = useDemo();
   const studioRef = useRef<DrawingStudioHandle>(null);
-  const artistId = persona.artistId ?? "luna";
+  const artistId = persona.artistId ?? "you";
   const sourceId = searchParams.get("back") ?? "";
   const source = sourceId ? findDemoArtwork(state.createdArtworks, artworks, sourceId) : undefined;
   const sourceLog = source ? processLogFor(state.processLogs, source.id) : null;
@@ -56,7 +56,10 @@ function CreateDrawForm() {
 
   const publish = (event: FormEvent) => {
     event.preventDefault();
-    if (persona.role !== "artist") return;
+    if (persona.role === "parent-preview") {
+      setError("Switch out of parent preview to publish a drawing.");
+      return;
+    }
     const drawing = studioRef.current?.hasMarks() ? studioRef.current.exportDrawing() : upload;
     if (!drawing) {
       setError(drawBackOk || challenge ? "Draw the piece on Arya before you publish." : "Draw the piece, or upload a file, before you publish.");
@@ -152,7 +155,7 @@ function CreateDrawForm() {
             </>
           )}
         </div>
-        {persona.role !== "artist" && <p className="text-sm text-black/50">Switch to LunaLines or SketchMaya to publish.</p>}
+        {persona.role === "parent-preview" && <p className="text-sm text-black/50">Switch out of parent preview to publish.</p>}
       </div>
       <DrawingStudio
         ref={studioRef}
@@ -181,7 +184,7 @@ function CreateDrawForm() {
             )}
             <Checkbox label="Offer commissions like this" checked={offer} onChange={(event) => setOffer(event.target.checked)} />
             {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
-            <Button type="submit" disabled={persona.role !== "artist" || Boolean(sourceId && !drawBackOk)} className="w-full">{drawBackOk ? "Publish draw-back" : challenge ? "Enter the challenge" : "Publish to portfolio"}</Button>
+            <Button type="submit" disabled={persona.role === "parent-preview" || Boolean(sourceId && !drawBackOk)} className="w-full">{drawBackOk ? "Publish draw-back" : challenge ? "Enter the challenge" : "Publish to portfolio"}</Button>
           </section>
         )}
       />

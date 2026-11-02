@@ -1,7 +1,7 @@
 import type { AccountType, AnalyticsEvent, Artwork, Availability, ChallengeEntry, CommissionOrder, CommissionService, DemoFile, DrawBackPair, DrawingDraft, LedgerEntry, Milestone, Notification, OrderBlock, OrderMessage, OrderReport, ParentApproval, PersonaRole, Post, ProcessStory, ProcessStoryConsent, RequestDraft, Review, TimelineEvent, WaitlistEntry } from "@/types";
 import { seedDemoNotifications, seedLedger, seedMessages, seedMilestones, seedOrders, seedTimeline } from "@/data/seed-orders";
 import { seedWaitlists } from "@/data/mock-data";
-import { defaultDemoPersona } from "@/features/demo/demo-personas";
+import { defaultDemoPersona, resolvePersonaId } from "@/features/demo/demo-personas";
 import { seedLanternArtwork, seedLanternLog, seedLanternPost } from "@/data/seed-lantern";
 import { seedChallengeEntries, seedPaperLanternArtwork, seedPaperLanternLog, seedPaperLanternPost } from "@/data/seed-challenges";
 import { seedDrawBacks } from "@/data/seed-draw-back";
@@ -111,7 +111,7 @@ function withSeedProcessLogs(logs: ProcessLog[]): ProcessLog[] {
 }
 
 export function parseDemoState(raw: string | null, legacyPersona?: string | null): DemoPersistedState {
-  const fallback = createDemoState(legacyPersona && legacyPersona.length ? legacyPersona : defaultDemoPersona.id);
+  const fallback = createDemoState(legacyPersona && legacyPersona.length ? resolvePersonaId(legacyPersona) : defaultDemoPersona.id);
   if (!raw) return fallback;
   try {
     const parsed = JSON.parse(raw) as Partial<DemoPersistedState>;
@@ -120,7 +120,7 @@ export function parseDemoState(raw: string | null, legacyPersona?: string | null
       ...fallback,
       ...parsed,
       version: DEMO_STATE_VERSION,
-      personaId: parsed.personaId,
+      personaId: resolvePersonaId(parsed.personaId),
       savedArtworkIds: Array.isArray(parsed.savedArtworkIds) ? parsed.savedArtworkIds : [],
       savedArtistIds: Array.isArray(parsed.savedArtistIds) ? parsed.savedArtistIds : [],
       waitlists: Array.isArray(parsed.waitlists) ? parsed.waitlists : fallback.waitlists,

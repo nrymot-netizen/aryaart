@@ -65,11 +65,17 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
               <p className="mt-1 text-lg text-black/60">{artist.displayName} · {artist.specialty}</p>
               <p className="mt-4 max-w-xl leading-7 text-black/65">{artist.bio}</p>
               <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm sm:justify-start">
-                <span className="flex items-center gap-1 font-bold"><Star size={16} weight="fill" className="text-amber-400" />{artist.rating} rating</span>
-                <span><strong>{artist.completedCommissions}</strong> completed</span>
-                <span>From <strong>${lowestPrice}</strong></span>
-                <span>{artist.responseTime}</span>
-                <StatusPill status={artist.availability} slots={artist.slots} />
+                {artist.id === "you" ? (
+                  <span>Drawings on this device. Not a public marketplace profile yet.</span>
+                ) : (
+                  <>
+                    <span className="flex items-center gap-1 font-bold"><Star size={16} weight="fill" className="text-amber-400" />{artist.rating} rating</span>
+                    <span><strong>{artist.completedCommissions}</strong> completed</span>
+                    <span>From <strong>${lowestPrice}</strong></span>
+                    <span>{artist.responseTime}</span>
+                    <StatusPill status={artist.availability} slots={artist.slots} />
+                  </>
+                )}
               </div>
               <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">{artist.styles.map((style) => <span key={style} className="rounded-full bg-white px-3 py-1 text-xs font-semibold">{style}</span>)}</div>
             </div>
