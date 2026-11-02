@@ -4,7 +4,7 @@ Arya Art is a web-first art discovery and commission marketplace demo. Buyers fi
 
 **Live:** [aryaart.vercel.app](https://aryaart.vercel.app)
 
-The demo covers discovery, in-app drawing, evaluation, request, artist response, simulated checkout, milestone workspace, review, studio supply, waitlists, and notifications. There is no Supabase backend yet — state lives in a versioned local demo store so both personas see the same transitions.
+The demo covers discovery, in-app drawing, evaluation, request, artist response, simulated checkout, milestone workspace, review, studio supply, waitlists, and notifications. Commissions stay in a versioned local demo store. Visitor drawings can sync across phones when the Supabase env in `.env.example` is set.
 
 **Start here for build work:** [docs/README.md](./docs/README.md)
 

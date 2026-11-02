@@ -11,6 +11,7 @@ import { SaveArtistButton } from "@/features/saves/save-button";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { WaitlistButton } from "@/features/waitlist/waitlist-button";
 import { artists, getArtist, getArtistArt, getArtistPosts, getArtistServices, getArtwork } from "@/data/mock-data";
+import { isPublisherHandle } from "@/lib/published/artist";
 import type { ArtistProfileTab } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { CreatedArtistWork } from "@/features/studio/created-artist-work";
@@ -65,8 +66,8 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
               <p className="mt-1 text-lg text-black/60">{artist.displayName} · {artist.specialty}</p>
               <p className="mt-4 max-w-xl leading-7 text-black/65">{artist.bio}</p>
               <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm sm:justify-start">
-                {artist.id === "you" ? (
-                  <span>Drawings on this device. Not a public marketplace profile yet.</span>
+                {artist.id === "you" || isPublisherHandle(artist.id) ? (
+                  <span>Drawn on Arya. A person, not a follower count.</span>
                 ) : (
                   <>
                     <span className="flex items-center gap-1 font-bold"><Star size={16} weight="fill" className="text-amber-400" />{artist.rating} rating</span>

@@ -4,6 +4,9 @@ import { FormEvent, Suspense, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DrawingStudio, type DrawingStudioHandle } from "@/features/canvas/drawing-studio";
 import { useDemo } from "@/features/demo/demo-provider";
+import { usePublished } from "@/features/published/published-provider";
+import { usePublishedArtwork } from "@/features/published/use-published-artwork";
+import { shouldSharePublish } from "@/lib/published/artist";
 import { Button } from "@/components/ui/button";
 import { Checkbox, FormField, Input, Select, Textarea } from "@/components/ui/form-field";
 import { ARYA_CANVAS_TOOL, type ExportedDrawing } from "@/lib/domain/canvas";
@@ -32,11 +35,13 @@ export default function CreateDrawPage() {
 function CreateDrawForm() {
   const searchParams = useSearchParams();
   const { persona, dispatch, state, hydrated } = useDemo();
+  const published = usePublished();
   const studioRef = useRef<DrawingStudioHandle>(null);
   const artistId = persona.artistId ?? "you";
   const sourceId = searchParams.get("back") ?? "";
-  const source = sourceId ? findDemoArtwork(state.createdArtworks, artworks, sourceId) : undefined;
-  const sourceLog = source ? processLogFor(state.processLogs, source.id) : null;
+  const sharedSource = usePublishedArtwork(sourceId);
+  const source = sourceId ? findDemoArtwork([...published.artworks, ...state.createdArtworks], artworks, sourceId) ?? sharedSource.artwork : undefined;
+  const sourceLog = source ? processLogFor([...published.processLogs, ...state.processLogs], source.id) ?? sharedSource.processLog : null;
   const sourceArtist = source ? getArtist(source.artistId) : undefined;
   const drawBackOk = Boolean(sourceId) && canDrawBack(source, sourceLog);
   const draftId = createDraftId("create", sourceId ? `${artistId}-back-${sourceId}` : artistId);
@@ -79,6 +84,8 @@ function CreateDrawForm() {
       paperColor: drawing.paperColor,
       challengeId: challenge?.id,
       replyToArtworkId: drawBackOk ? source?.id : undefined,
+      replySource: drawBackOk ? source : undefined,
+      replySourceLog: drawBackOk ? sourceLog ?? undefined : undefined,
       artwork: {
         id,
         artistId,
@@ -111,6 +118,12 @@ function CreateDrawForm() {
       return;
     }
     dispatch({ type: "clear-drawing-draft", id: draftId });
+    if (shouldSharePublish(artistId)) {
+      const artwork = result.state.createdArtworks.find((item) => item.id === id);
+      const processLog = processLogFor(result.state.processLogs, id);
+      const pair = (result.state.drawBacks ?? []).find((item) => item.replyArtworkId === id) ?? null;
+      if (artwork) void published.share({ artwork: { ...artwork, artistId: published.handle }, processLog, pair });
+    }
     if (offer) window.location.href = `/create/service?from=${id}`;
   };
 
@@ -142,7 +155,7 @@ function CreateDrawForm() {
               Ghost still from @{sourceArtist.username}. Your marks are the reply. Uploads cannot enter.
             </p>
           )}
-          {sourceId && !drawBackOk && (
+          {sourceId && !drawBackOk && !sharedSource.loading && (
             <p className="mt-2 max-w-xl text-sm leading-6 text-red-600">This piece cannot be drawn back. It needs a public Arya replay.</p>
           )}
           {challenge && (

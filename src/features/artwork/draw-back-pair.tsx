@@ -6,20 +6,24 @@ import { useParams } from "next/navigation";
 import { Pause, Play } from "@phosphor-icons/react";
 import { artworks, getArtist, getArtistServices } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
+import { usePublished } from "@/features/published/published-provider";
 import { ReplayPlayer, type ReplayPlayerHandle } from "@/features/artwork/replay-player";
 import { DrawBackButton } from "@/features/artwork/draw-back-button";
 import { AvailabilityCta } from "@/features/commissions/availability-cta";
 import { Button } from "@/components/ui/button";
 import { PairShareActions } from "@/features/artwork/artwork-share";
 import { findDemoArtwork, pairShareCopy, publicDrawBacks } from "@/lib/domain/draw-back";
-import { processLogFor } from "@/lib/domain/process-log";
+import { processLogFor, type ProcessLog } from "@/lib/domain/process-log";
 import { StatusPill } from "@/components/status-pill";
+import type { Artwork, DrawBackPair } from "@/types";
 
 export function DrawBackPairBody() {
   const params = useParams<{ id: string }>();
   const { state, hydrated, dispatch } = useDemo();
+  const published = usePublished();
   const [reducedMotion, setReducedMotion] = useState(true);
   const [watching, setWatching] = useState(false);
+  const [remote, setRemote] = useState<{ pair: DrawBackPair; source: Artwork; reply: Artwork; sourceLog: ProcessLog | null; replyLog: ProcessLog | null } | null>(null);
   const sourceReplay = useRef<ReplayPlayerHandle>(null);
   const replyReplay = useRef<ReplayPlayerHandle>(null);
   const finished = useRef(0);
@@ -48,16 +52,38 @@ export function DrawBackPairBody() {
     return () => window.clearTimeout(timer);
   }, [dispatch, hydrated, params.id, reducedMotion]);
 
+  useEffect(() => {
+    if (!hydrated || !params.id) return;
+    const catalog = [...published.artworks, ...state.createdArtworks, ...artworks];
+    const logs = [...published.processLogs, ...state.processLogs];
+    const pairs = [...published.pairs, ...(state.drawBacks ?? [])];
+    if (publicDrawBacks(pairs, catalog, logs).some((item) => item.id === params.id)) return;
+    let cancelled = false;
+    fetch(`/api/published/pairs/${params.id}`).then((response) => response.json()).then((data) => {
+      if (cancelled || !data.pair || !data.source?.artwork || !data.reply?.artwork) return;
+      setRemote({
+        pair: data.pair,
+        source: data.source.artwork,
+        reply: data.reply.artwork,
+        sourceLog: data.source.processLog ?? null,
+        replyLog: data.reply.processLog ?? null,
+      });
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [hydrated, params.id, published.artworks, published.pairs, published.processLogs, state.createdArtworks, state.drawBacks, state.processLogs]);
+
   if (!hydrated) return <div className="px-4 py-16 text-sm text-black/50">Loading draw-back…</div>;
 
-  const catalog = [...state.createdArtworks, ...artworks];
-  const pair = publicDrawBacks(state.drawBacks ?? [], catalog, state.processLogs).find((item) => item.id === params.id);
-  const source = pair ? findDemoArtwork(state.createdArtworks, artworks, pair.sourceArtworkId) : undefined;
-  const reply = pair ? findDemoArtwork(state.createdArtworks, artworks, pair.replyArtworkId) : undefined;
+  const catalog = [...published.artworks, ...state.createdArtworks, ...artworks, ...(remote ? [remote.source, remote.reply] : [])];
+  const logs = [...published.processLogs, ...state.processLogs, ...(remote?.sourceLog ? [remote.sourceLog] : []), ...(remote?.replyLog ? [remote.replyLog] : [])];
+  const pairs = [...published.pairs, ...state.drawBacks ?? [], ...(remote ? [remote.pair] : [])];
+  const pair = publicDrawBacks(pairs, catalog, logs).find((item) => item.id === params.id);
+  const source = pair ? findDemoArtwork(catalog, [], pair.sourceArtworkId) : undefined;
+  const reply = pair ? findDemoArtwork(catalog, [], pair.replyArtworkId) : undefined;
   const sourceArtist = source ? getArtist(source.artistId) : undefined;
   const replyArtist = reply ? getArtist(reply.artistId) : undefined;
-  const sourceLog = source ? processLogFor(state.processLogs, source.id) : null;
-  const replyLog = reply ? processLogFor(state.processLogs, reply.id) : null;
+  const sourceLog = source ? processLogFor(logs, source.id) : null;
+  const replyLog = reply ? processLogFor(logs, reply.id) : null;
 
   if (!pair || !source || !reply || !sourceArtist || !replyArtist || !sourceLog || !replyLog) {
     return (

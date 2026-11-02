@@ -7,6 +7,7 @@ import type {
   Review,
   WaitlistEntry,
 } from "@/types";
+import { isPublisherHandle, publisherArtist } from "@/lib/published/artist";
 
 const lunaRules = {
   acceptedSubjects: ["Original characters", "Fantasy portraits", "Soft anime scenes"],
@@ -33,7 +34,7 @@ export const youArtist: Artist = {
   username: "you",
   displayName: "You",
   specialty: "Drawing on Arya",
-  bio: "This is your studio on this device. Draw, publish, and draw back. Work stays in this browser until a shared backend exists.",
+  bio: "This is your studio. Draw, publish, and draw back. Pieces stay in this browser, and can appear on other phones when the shared gallery is connected.",
   avatar: "/art/avatar-you.svg",
   accountType: "adult",
   styles: ["Anime", "Cute", "Fantasy"],
@@ -151,7 +152,7 @@ export const notifications: Notification[] = [
   { id: "n2", profileId: "buyer-alex", title: "Waitlist update", detail: "You moved up to #4 on SketchMaya’s list.", href: "/artists/maya", type: "waitlist", read: false, createdAt: "2026-08-17T09:00:00Z" },
 ];
 
-export const getArtist = (id: string) => artists.find((artist) => artist.id === id) ?? (id === youArtist.id ? youArtist : undefined);
+export const getArtist = (id: string) => artists.find((artist) => artist.id === id) ?? (id === youArtist.id ? youArtist : undefined) ?? (isPublisherHandle(id) ? publisherArtist(id) : undefined);
 export const getArtwork = (id: string) => artworks.find((artwork) => artwork.id === id);
 export const getService = (id: string) => services.find((service) => service.id === id);
 export const getArtistArt = (id: string) => artworks.filter((artwork) => artwork.artistId === id);

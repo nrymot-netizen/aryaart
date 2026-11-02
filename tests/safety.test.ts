@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateContactFields, evaluateContactSharing, isProtectedThread, orderIsProtectedThread } from "@/lib/domain/safety";
+import { evaluateContactFields, evaluateContactSharing, evaluatePublicCopy, isProtectedThread, orderIsProtectedThread } from "@/lib/domain/safety";
 
 describe("protected teen message safety", () => {
   it("allows normal project feedback", () => expect(evaluateContactSharing("Could the cape be a little more purple?", true).allowed).toBe(true));
@@ -24,5 +24,9 @@ describe("protected teen message safety", () => {
   it("marks either participant as enough for a protected thread", () => {
     expect(isProtectedThread("protected-teen", "adult")).toBe(true);
     expect(isProtectedThread("adult", "adult")).toBe(false);
+  });
+  it("blocks contact on a public title or description", () => {
+    expect(evaluatePublicCopy(["Moon garden", "Find me instagram.com/moonart"]).allowed).toBe(false);
+    expect(evaluatePublicCopy(["Moon garden", "Drawn on Arya."]).allowed).toBe(true);
   });
 });

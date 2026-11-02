@@ -6,6 +6,7 @@ export const CONTACT_BLOCK_MESSAGE =
   "Message not sent. Sharing personal contact information is restricted for protected teen accounts.";
 export const CONTACT_REQUEST_MESSAGE =
   "Request not sent. Sharing personal contact information is restricted on protected accounts.";
+export const PUBLIC_COPY_BLOCK_MESSAGE = "Don’t put contact details on a public piece.";
 
 const contactPatterns = [
   { kind: "email", pattern: /\b[A-Z0-9._%+-]+\s*(?:@|\bat\b|\(at\))\s*[A-Z0-9.-]+\s*(?:\.|\bdot\b|\(dot\))\s*[A-Z]{2,}\b/i },
@@ -55,6 +56,12 @@ export function evaluateContactSharing(message: string, protectedThread: boolean
   const match = scan(message);
   if (!match) return { allowed: true };
   return { allowed: false, reason: match.kind, message: CONTACT_BLOCK_MESSAGE };
+}
+
+export function evaluatePublicCopy(fields: Array<string | undefined>): SafetyEvaluation {
+  const match = scan(fields.filter(Boolean).join("\n"));
+  if (!match) return { allowed: true };
+  return { allowed: false, reason: match.kind, message: PUBLIC_COPY_BLOCK_MESSAGE };
 }
 
 export function evaluateContactFields(fields: Array<string | undefined>, protectedThread: boolean): SafetyEvaluation {

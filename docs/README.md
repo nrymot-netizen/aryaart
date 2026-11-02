@@ -27,4 +27,4 @@ Read in this order before writing code. Do not assume a blank product; the mock 
 
 Do not reopen Phases 0–10 unless fixing a regression.
 
-**Stop for UX validation.** Do not start real auth, Supabase, or payments unless product asks. Provenance certificates and Playwright e2e remain later.
+Phase 7 slice 1 (public drawings) is in progress. Do not start real auth, cards, or order sync unless product asks. Provenance certificates and Playwright e2e remain later.

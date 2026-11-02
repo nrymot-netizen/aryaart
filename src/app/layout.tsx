@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 import { DemoProvider } from "@/features/demo/demo-provider";
+import { PublishedProvider } from "@/features/published/published-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className="font-[family-name:var(--font-sans)] antialiased">
-        <DemoProvider><AppShell>{children}</AppShell></DemoProvider>
+        <DemoProvider><PublishedProvider><AppShell>{children}</AppShell></PublishedProvider></DemoProvider>
       </body>
     </html>
   );

@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { artworks, getArtist } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
+import { usePublished } from "@/features/published/published-provider";
 import { drawBackPairHref, findDemoArtwork, publicDrawBacks } from "@/lib/domain/draw-back";
 
 export function DiscoverDrawBacks({ excludePairId }: { excludePairId?: string } = {}) {
   const { state, hydrated } = useDemo();
+  const published = usePublished();
   if (!hydrated) return null;
-  const catalog = [...state.createdArtworks, ...artworks];
-  const pairs = publicDrawBacks(state.drawBacks ?? [], catalog, state.processLogs).filter((pair) => pair.id !== excludePairId);
+  const catalog = [...published.artworks, ...state.createdArtworks, ...artworks];
+  const pairs = publicDrawBacks([...published.pairs, ...state.drawBacks ?? []], catalog, [...published.processLogs, ...state.processLogs]).filter((pair) => pair.id !== excludePairId);
   if (!pairs.length) return null;
   return (
     <section className="mx-auto max-w-[1480px] px-4 pb-10 sm:px-6 sm:pb-16 lg:px-10">
@@ -18,8 +20,8 @@ export function DiscoverDrawBacks({ excludePairId }: { excludePairId?: string } 
       <p className="mt-2 max-w-2xl text-sm text-black/50">A reply is another drawing, not a comment thread. Uploads cannot enter.</p>
       <div className="mt-5 grid gap-5 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
         {pairs.map((pair) => {
-          const source = findDemoArtwork(state.createdArtworks, artworks, pair.sourceArtworkId);
-          const reply = findDemoArtwork(state.createdArtworks, artworks, pair.replyArtworkId);
+          const source = findDemoArtwork(catalog, [], pair.sourceArtworkId);
+          const reply = findDemoArtwork(catalog, [], pair.replyArtworkId);
           const sourceArtist = source ? getArtist(source.artistId) : undefined;
           const replyArtist = reply ? getArtist(reply.artistId) : undefined;
           if (!source || !reply || !sourceArtist || !replyArtist) return null;

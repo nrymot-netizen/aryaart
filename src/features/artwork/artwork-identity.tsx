@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDemo } from "@/features/demo/demo-provider";
+import { usePublishedArtwork } from "@/features/published/use-published-artwork";
 import { ArtworkShareActions } from "@/features/artwork/artwork-share";
 import { DrawBackButton } from "@/features/artwork/draw-back-button";
 import { ReplayPlayer } from "@/features/artwork/replay-player";
@@ -14,7 +15,8 @@ import type { Artwork } from "@/types";
 
 export function ArtworkStage({ artwork, artistName }: { artwork: Artwork; artistName: string }) {
   const { state, dispatch } = useDemo();
-  const processLog = processLogFor(state.processLogs, artwork.id);
+  const shared = usePublishedArtwork(artwork.id);
+  const processLog = processLogFor(state.processLogs, artwork.id) ?? shared.processLog;
   const canReplay = Boolean(processLog && processLog.ops.length > 0);
   const humanMade = publicHumanMade(artwork.tools, processLog);
   const onArya = drawnOnArya(artwork.tools);

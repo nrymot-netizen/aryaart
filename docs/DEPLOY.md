@@ -19,7 +19,13 @@ An older claimed preview (`temporary-flying-copper-…`) may still exist. Prefer
 3. Vercel builds with `npm run build` (`next build --webpack` in `package.json`; `vercel.json` sets `framework: nextjs` and that build command).
 4. Hobby Git deploys require the **commit author** to match the Vercel Hobby owner (GitHub login `nrymot-netizen`).
 
-There is no production `.env` yet. Do not add real payment keys, Supabase, or wallet keys.
+Shared drawings need three Vercel env vars after you create a Supabase project and run `supabase/migrations/20261102_published_art.sql`:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Leave them unset to keep the live site local-only. Never put the service role in client code. Do not add real payment keys or wallet keys.
 
 ## Local production check
 
@@ -31,7 +37,9 @@ npm run build
 
 ## Demo data on the live site
 
-State is **per browser** (`localStorage`). Testers do not share orders. Reset demo is local. Drawings stored as JPEG data URLs can hit quota; the provider already surfaces that error — do not silent-fail.
+Demo commissions stay **per browser** (`localStorage`). Testers do not share orders. Reset demo is local. Drawings stored as JPEG data URLs can hit quota; the provider already surfaces that error — do not silent-fail.
+
+Visitor drawings published as You can appear on other phones when the Supabase env above is set. Demo personas (Luna, Maya, Alex) stay local.
 
 ## Do not deploy
 

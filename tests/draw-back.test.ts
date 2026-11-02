@@ -76,6 +76,35 @@ describe("draw-back pairs", () => {
     expect(result.state.drawBacks.some((item) => item.replyArtworkId === "art-upload-back")).toBe(false);
   });
 
+  it("can draw back a shared source that is not in this browser", () => {
+    const source = artwork("art-shared-source", { artistId: "ink-tester1" });
+    const sourceLog = processLogFor(
+      [
+        {
+          id: "plog-shared-source",
+          subjectId: source.id,
+          subjectKind: "artwork",
+          paperColor: "#fffdf8",
+          width: 720,
+          height: 900,
+          ops: [{ type: "fill", x: 12, y: 20, color: "#17151b", layerId: "layer-1" }],
+          recordedAt: "2026-11-01T18:00:00.000Z",
+        },
+      ],
+      source.id,
+    );
+    const result = reduceDemoState(createDemoState(), {
+      type: "create-artwork",
+      replyToArtworkId: source.id,
+      replySource: source,
+      replySourceLog: sourceLog ?? undefined,
+      processOps: [{ type: "fill", x: 40, y: 80, color: "#e0a51a", layerId: "layer-1" }],
+      artwork: artwork("art-shared-reply", { artistId: "you" }),
+    }, luna);
+    expect(result.error).toBeUndefined();
+    expect(result.state.drawBacks[0]).toMatchObject({ sourceArtworkId: source.id, replyArtworkId: "art-shared-reply" });
+  });
+
   it("does not attach a pair when the source has no replay", () => {
     const result = reduceDemoState(createDemoState(), {
       type: "create-artwork",

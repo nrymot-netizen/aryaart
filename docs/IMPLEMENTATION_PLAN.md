@@ -3,7 +3,7 @@
 **Audience:** Cursor/Codex implementers and product reviewers  
 **Companion:** [Docs index](./README.md) · [Current state](./CURRENT_STATE.md) · [Product Requirements](./PRODUCT_REQUIREMENTS.md) · [Drawing Identity PRD](./DRAWING_IDENTITY_PRD.md) · [Demo and QA](./DEMO_AND_QA.md) · [Safety](./SAFETY.md) · [Deploy](./DEPLOY.md)
 
-**Next phase to implement:** Stop for UX validation. Phases 0–10 are shipped on the mock demo. Do not start Phase 7 (Supabase) unless product asks. Do not rebuild shipped phases.
+**Next phase to implement:** Phase 7 slice 1 (public drawings) is in progress. Do not start auth, cards, or order sync unless product asks. Do not rebuild shipped phases.
 
 ## 1. Delivery strategy
 
@@ -211,7 +211,7 @@ Do not use scattered `useState` as the authoritative order state. Use a single c
 | 4 Workspace | Messages, sketch/final, review | Shipped |
 | 5 Create + Studio | Power canvas, publish, services | Shipped (layers in-session only) |
 | 6 Waitlists, notifications, polish | Connected supporting systems | Shipped enough to demo; polish is ongoing |
-| 7 Supabase | Shared backend | **Not started** — after UX validation |
+| 7 Supabase | Shared backend | **Slice 1 in progress** — public drawings + pairs only |
 | 8 License + identity A | Copy + replay/share/proof | **Shipped** |
 | 9 Challenges | Human-only brief grid | **Shipped** |
 | 10 Process stories | Dual opt-in unboxing | **Shipped** |
@@ -336,9 +336,11 @@ Exit criteria: all PRD requirements are demonstrable, polished, and regression-t
 
 **Outcome:** Shared multi-session backend replaces local demo persistence.
 
+**Slice 1 (in progress):** public visitor drawings, process logs, and draw-back pairs. Service-role writes, public reads. No auth emails, no cards, no shared orders.
+
 Tasks:
 
-1. Create project and migrations; generate database types.
+1. Create project and migrations; generate database types. **Slice 1 SQL lives in `supabase/migrations/20261102_published_art.sql`.**
 2. Add cookie-based Supabase Auth with demo-friendly login.
 3. Implement RLS and private Storage policies before importing user data.
 4. Implement Supabase repositories behind existing interfaces.
@@ -426,7 +428,7 @@ Manual coverage for 1–10 lives in [Demo and QA](./DEMO_AND_QA.md). Automate 11
 
 ## 10. Cursor execution protocol
 
-Give Cursor **one phase at a time**. Phases 0–10 are shipped. Next is Phase 7 only after UX validation and an explicit ask. For each phase:
+Give Cursor **one phase at a time**. Phases 0–10 are shipped. Phase 7 slice 1 is public drawings only. For each phase:
 
 1. Read [docs/README.md](./README.md), [CURRENT_STATE.md](./CURRENT_STATE.md), this plan, and the relevant PRD section.
 2. Inspect the repository and state current behavior before editing.
@@ -442,7 +444,7 @@ Never print the private motivational model in UI. Never add generative fill, ope
 Suggested next Cursor instruction:
 
 ```text
-Do not start Phase 7 (Supabase) unless explicitly asked. Phases 0–10 are shipped on the mock demo. Preserve process stories (dual opt-in, no brief leak, no teen auto-post), challenges, replay/license, and the marketplace loop. If fixing a gap, keep mutations in the demo reducer. Run npm test, typecheck, and build. Verify in the browser.
+Phase 7 slice 1 is public drawings only. Do not start auth, cards, or order sync unless explicitly asked. Phases 0–10 stay on the mock demo. Preserve process stories (dual opt-in, no brief leak, no teen auto-post), challenges, replay/license, and the marketplace loop. If fixing a gap, keep mutations in the demo reducer. Run npm test, typecheck, and build. Verify in the browser.
 ```
 
 ## 11. Immediate backlog

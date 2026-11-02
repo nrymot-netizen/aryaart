@@ -6,7 +6,7 @@ import { canDrawBack, canPublishDrawBack } from "@/lib/domain/draw-back";
 import { isProductEvent, uniqueEventKey } from "@/lib/domain/events";
 import { licenseSummary } from "@/lib/domain/license";
 import { calculateCommissionEstimate, canUseRevision, getNextOrderStatus, milestoneBlueprint } from "@/lib/domain/orders";
-import { buildProcessLog, processLogFor } from "@/lib/domain/process-log";
+import { buildProcessLog, processLogFor, type ProcessLog } from "@/lib/domain/process-log";
 import { emptyProcessConsent, processFiles, processStoryReady, sanitizeProcessCaption, shouldIncludeFinalReplay } from "@/lib/domain/process-stories";
 import { evaluateContactFields, evaluateContactSharing, orderIsProtectedThread } from "@/lib/domain/safety";
 import { joinWaitlist, leaveWaitlist, promoteWaitlistEntry } from "@/lib/domain/waitlist";
@@ -43,7 +43,7 @@ export type DemoCommand =
   | { type: "hide-review"; reviewId: string }
   | { type: "report-review"; reviewId: string }
   | { type: "submit-review"; orderId: string; rating: number; body: string; serviceTitle: string }
-  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string; challengeId?: string; replyToArtworkId?: string }
+  | { type: "create-artwork"; artwork: Artwork; post?: Post; processOps?: CanvasOp[]; paperColor?: string; challengeId?: string; replyToArtworkId?: string; replySource?: Artwork; replySourceLog?: ProcessLog }
   | { type: "process-story-opt-in"; orderId: string; side: "artist" | "buyer"; optIn: boolean; replayOptIn?: boolean; caption?: string }
   | { type: "create-service"; service: CommissionService }
   | { type: "update-availability"; artistId: string; availability: Availability; slots?: number }
@@ -475,8 +475,8 @@ export function reduceDemoState(state: DemoPersistedState, command: DemoCommand,
         tools: tools.length ? tools : ["Uploaded file"],
       };
       if (command.replyToArtworkId) {
-        const source = state.createdArtworks.find((item) => item.id === command.replyToArtworkId) ?? getArtwork(command.replyToArtworkId);
-        const sourceLog = source ? processLogFor(state.processLogs, source.id) : null;
+        const source = state.createdArtworks.find((item) => item.id === command.replyToArtworkId) ?? getArtwork(command.replyToArtworkId) ?? command.replySource;
+        const sourceLog = (source ? processLogFor(state.processLogs, source.id) : null) ?? command.replySourceLog ?? null;
         if (!canDrawBack(source, sourceLog)) {
           return { state, error: "This piece cannot be drawn back." };
         }

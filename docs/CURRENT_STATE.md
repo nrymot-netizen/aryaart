@@ -3,7 +3,7 @@
 **As of:** 1 November 2026 (evening)  
 **Repo:** [nrymot-netizen/aryaart](https://github.com/nrymot-netizen/aryaart) `main`  
 **Live:** https://aryaart.vercel.app (Hobby, Git-connected)  
-**Persistence:** `localStorage` key `arya-demo-state-v2` (`DEMO_STATE_VERSION = 2`)
+**Persistence:** Demo commissions stay in `localStorage` key `arya-demo-state-v2` (`DEMO_STATE_VERSION = 2`). Visitor drawings can also publish to a shared gallery when Supabase env is set.
 
 This is a product-validation demo, not a production marketplace. Treat it as the vertical slice to extend, not a greenfield app.
 
@@ -24,6 +24,7 @@ This is a product-validation demo, not a production marketplace. Treat it as the
 | Studio | Availability, incoming work, waitlist demand, open slots, created art/services, simulated ledger, first paid piece moment, `/studio/services` |
 | Safety | 13+ notice (not verification), protected-teen chrome, contact block on protected threads (messages + brief/notes), report / block / leave stubs, review report/hide. Still no production moderation. See [SAFETY.md](./SAFETY.md). |
 | Demo | New visitors are **You** (local artist). They can draw and publish without switching. Alex / Riley / Luna / Maya / Parent stay under Review as for the commission loop. Identity events on Settings. |
+| Shared gallery | Phase 7 slice 1 only. Create as You can POST `/api/published` (title/description contact-scanned, 8 publishes / 10 min / IP). Other browsers can open `/art/art-*` and `/draw-back/*` when `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set and `supabase/migrations/20261102_published_art.sql` has been run. Without env, GET returns `{ configured: false }` and the local demo still works. Luna/Maya catalog art stays local. No auth emails, no real cards, no order sync. |
 
 ## As-built layout (do not reshuffle unless a phase requires it)
 
@@ -47,7 +48,7 @@ Public URLs are flat App Router routes (no `(marketplace)` groups yet). Domain l
 ## Known gaps (build these; do not pretend they are done)
 
 1. **Layers** — Drafts restore the composite JPEG in this browser, plus per-layer PNGs when they fit the size cap. Over-budget drafts keep the still only. Undo starts from the restored still. Not a PSD round-trip; pointer history is not stored in the draft.
-2. **Backend** — No Supabase, no real auth, no real money. Two browsers do not share state.
+2. **Backend** — Public drawings can sync when Supabase env is set. No real auth, no real money, no shared orders. Two phones still do not share commissions.
 3. **Playwright e2e** — Plan mentions them; repo uses Vitest only.
 4. **Canvas/image contact** — Matcher does not read drawings. Production T&S still not started.
 5. **Replay fidelity** — Replay is sampled ops over ~8–15s, not a lossless timelapse or downloadable video file.
@@ -69,4 +70,4 @@ Public URLs are flat App Router routes (no `(marketplace)` groups yet). Domain l
 
 ## What “done” means right now
 
-A stranger can Watch both → Draw back → publish in this browser, and a stakeholder can still complete Discover → request Luna → accept → demo checkout → draw → review by switching Review as. Drawings do not sync across phones. Dual opt-in process stories must not leak briefs. Shared accounts / Phase 7 stay blocked until we start a real backend.
+A stranger can Watch both → Draw back → publish in this browser, and a stakeholder can still complete Discover → request Luna → accept → demo checkout → draw → review by switching Review as. With Supabase env, another phone can open the same `/art/art-*` or pair URL. Dual opt-in process stories must not leak briefs. Auth, payments, and order sync stay later.
