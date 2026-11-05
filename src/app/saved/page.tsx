@@ -18,7 +18,7 @@ export default function SavedPage() {
 
   return (
     <>
-      <PageIntro eyebrow="Your collection" title="Saved work" description="Pieces and artists you keep. Reset clears them." />
+      <PageIntro eyebrow="Your collection" title="Saved work" description="Pieces and artists you keep." />
       <div className="mx-auto max-w-[1480px] space-y-16 px-4 pb-20 sm:px-6 lg:px-10">
         <section>
           <h2 className="font-[family-name:var(--font-display)] text-3xl">Saved artwork</h2>

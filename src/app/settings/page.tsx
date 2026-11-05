@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <PageIntro eyebrow="Account" title="Safety settings" description={locked ? "These protections stay on. A teen account cannot turn them off in this demo." : "Demo safety defaults. Production parent controls and age assurance are not in this build."} />
+      <PageIntro eyebrow="Account" title="Safety settings" description={locked ? "These protections stay on. A teen account cannot turn them off." : "Contact sharing stays blocked. Messages stay on the order. Exact age stays off the public UI."} />
       <PersonaContextBanner />
       <div className="mx-auto max-w-xl space-y-4 px-4 pb-20 sm:px-6">
         <section className="rounded-4xl bg-white p-5">
@@ -72,8 +72,8 @@ export default function SettingsPage() {
           </ul>
           <Button variant="ghost" className="mt-3 w-full" onClick={() => resetDemo()}>Reset this browser</Button>
         </section>
-        <p className="text-xs leading-5 text-black/40">13+ only. This is not age verification. Payments and parent approval are simulated. No moderator is on call. Two phones do not share drawings yet.</p>
-        <DemoEventInspector />
+        <p className="text-xs leading-5 text-black/40">13+ only. This is not age verification. No moderator is on call.</p>
+        {persona.id !== "you" && <DemoEventInspector />}
       </div>
     </>
   );

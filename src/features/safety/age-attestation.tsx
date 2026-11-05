@@ -32,7 +32,7 @@ export function AgeAttestation() {
       <div className="w-full max-w-md rounded-4xl bg-paper p-6 sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-plum">Age notice</p>
         <h2 id="age-title" className="mt-2 font-[family-name:var(--font-display)] text-3xl">Are you 13 or older?</h2>
-        <p className="mt-3 text-sm leading-6 text-black/60">Arya is a 13+ art demo. This is not age verification, a parent portal, or a COPPA claim. Payments and parent support in the demo are simulated.</p>
+        <p className="mt-3 text-sm leading-6 text-black/60">Arya is 13+. This is not age verification, a parent portal, or a COPPA claim.</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <Button
             onClick={() => {

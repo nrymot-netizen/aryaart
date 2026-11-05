@@ -103,7 +103,7 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
   const [redoCount, setRedoCount] = useState(0);
   const [baked, setBaked] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState("Power studio ready. Draw with a finger, mouse, or stylus.");
+  const [status, setStatus] = useState("Ready. Draw with a finger, mouse, or stylus.");
   const onAutosaveRef = useRef(onAutosave);
   onAutosaveRef.current = onAutosave;
   const layersRef = useRef(layers);
@@ -648,7 +648,7 @@ export const DrawingStudio = forwardRef<DrawingStudioHandle, {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-xs leading-5 text-black/45">{bootDraft ? "Draft restored in this browser. Undo starts from this still." : "Drafts save in this browser while you draw. Not a PSD round-trip."}</p>
+          <p className="mt-2 text-xs leading-5 text-black/45">{bootDraft ? "Draft restored. Undo starts from this still." : "Drafts save while you draw."}</p>
           {selected && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <button type="button" onClick={() => updateLayer(selected.id, { visible: !selected.visible })} className="grid size-11 place-items-center rounded-full bg-mist" aria-label="Toggle visibility"><Eye size={15} className={selected.visible ? "text-ink" : "text-black/30"} /></button>

@@ -41,9 +41,13 @@ export function ChallengeDetail({ challenge }: { challenge: Challenge }) {
       </div>
       <section className="mx-auto max-w-[1480px] px-4 pb-20 sm:px-6 lg:px-10">
         <h2 className="mb-6 font-[family-name:var(--font-display)] text-3xl">{artworks.length} {artworks.length === 1 ? "entry" : "entries"}</h2>
-        <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">
-          {artworks.map(({ entry, artwork }) => <ChallengeEntryCard key={entry.id} artwork={artwork} entry={entry} />)}
-        </div>
+        {artworks.length ? (
+          <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">
+            {artworks.map(({ entry, artwork }) => <ChallengeEntryCard key={entry.id} artwork={artwork} entry={entry} />)}
+          </div>
+        ) : (
+          <p className="rounded-3xl border border-dashed border-black/15 bg-white px-5 py-10 text-sm text-black/50">No public entries on this brief.</p>
+        )}
       </section>
     </>
   );

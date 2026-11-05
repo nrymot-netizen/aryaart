@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { notFound } from "next/navigation";
 import { getArtist, getArtistArt } from "@/data/mock-data";
 import { useDemo } from "@/features/demo/demo-provider";
@@ -10,6 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function CreatedArtworkPage({ id }: { id: string }) {
   const { state, hydrated } = useDemo();
   const shared = usePublishedArtwork(id);
+  const artwork = state.createdArtworks.find((item) => item.id === id) ?? shared.artwork;
+  const artist = artwork ? getArtist(artwork.artistId) : undefined;
+
+  useEffect(() => {
+    if (artwork?.title) document.title = `${artwork.title} — Arya Art`;
+  }, [artwork?.title]);
+
   if (!hydrated || shared.loading) {
     return (
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2">
@@ -22,9 +30,7 @@ export function CreatedArtworkPage({ id }: { id: string }) {
       </div>
     );
   }
-  const artwork = state.createdArtworks.find((item) => item.id === id) ?? shared.artwork;
-  const artist = artwork ? getArtist(artwork.artistId) : undefined;
   if (!artwork || !artist) notFound();
-  const related = [...state.createdArtworks.filter((item) => item.id !== id && item.artistId === artwork.artistId), ...getArtistArt(artist.id)].slice(0, 6);
+  const related = [...state.createdArtworks.filter((item) => item.id !== id && item.artistId === artwork.artistId && item.title.trim() && item.title !== "Untitled study"), ...getArtistArt(artist.id)].slice(0, 6);
   return <ArtworkDetailBody artwork={artwork} artist={artist} related={related} />;
 }

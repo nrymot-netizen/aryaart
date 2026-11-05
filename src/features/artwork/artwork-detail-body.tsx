@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { artworks, getArtist, getArtistServices, getRelatedArtworks } from "@/data/mock-data";
 import { artistLabel, isVisitorArtist } from "@/lib/published/artist";
@@ -26,6 +27,9 @@ export function ArtworkDetailBody({ artwork, artist, related }: { artwork: Artwo
   const challenge = challengeEntry ? getChallenge(challengeEntry.challengeId) : undefined;
   const replyPair = pairForReply(state.drawBacks ?? [], artwork.id);
   const replies = pairsForSource(state.drawBacks ?? [], artwork.id);
+  useEffect(() => {
+    document.title = `${artwork.title} — Arya Art`;
+  }, [artwork.title]);
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-12">
       <ViewTracker name="artwork_viewed" payload={{ artworkId: artwork.id }} />

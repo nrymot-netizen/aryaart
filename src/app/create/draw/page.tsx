@@ -1,12 +1,12 @@
 "use client";
 
-import { FormEvent, Suspense, useRef, useState } from "react";
+import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DrawingStudio, type DrawingStudioHandle } from "@/features/canvas/drawing-studio";
 import { useDemo } from "@/features/demo/demo-provider";
 import { usePublished } from "@/features/published/published-provider";
 import { usePublishedArtwork } from "@/features/published/use-published-artwork";
-import { shouldSharePublish } from "@/lib/published/artist";
+import { artistLabel, isVisitorArtist, shouldSharePublish } from "@/lib/published/artist";
 import { Button } from "@/components/ui/button";
 import { Checkbox, FormField, Input, Select, Textarea } from "@/components/ui/form-field";
 import { ARYA_CANVAS_TOOL, type ExportedDrawing } from "@/lib/domain/canvas";
@@ -139,6 +139,10 @@ function CreateDrawForm() {
     setError(null);
   };
 
+  useEffect(() => {
+    document.title = drawBackOk && source ? `Draw back · ${source.title} — Arya Art` : challenge ? `${challenge.title} — Arya Art` : "Draw — Arya Art";
+  }, [challenge, drawBackOk, source]);
+
   if (!hydrated) {
     return <div className="px-4 py-16 text-sm text-black/50">Loading the studio…</div>;
   }
@@ -149,10 +153,10 @@ function CreateDrawForm() {
       <div className="mb-2 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-plum sm:text-xs">{drawBackOk ? "Draw-back" : challenge ? "Challenge brief" : "Arya Canvas"}</p>
-          <h1 className="font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl">{drawBackOk && source ? `Draw back · ${source.title}` : challenge ? challenge.title : "Power studio"}</h1>
+          <h1 className="font-[family-name:var(--font-display)] text-[1.7rem] leading-none sm:text-4xl">{drawBackOk && source ? `Draw back · ${source.title}` : challenge ? challenge.title : "Draw"}</h1>
           {drawBackOk && sourceArtist && (
             <p className="mt-1 hidden max-w-xl text-sm leading-6 text-black/55 sm:mt-2 sm:block">
-              Ghost still from @{sourceArtist.username}. Your marks are the reply. Uploads cannot enter.
+              Ghost still from {artistLabel(sourceArtist)}. Your marks are the reply. Uploads cannot enter.
             </p>
           )}
           {sourceId && !drawBackOk && !sharedSource.loading && (
@@ -195,7 +199,9 @@ function CreateDrawForm() {
             ) : (
               <p className="text-xs leading-5 text-black/45">Arya Canvas does not include generative AI.</p>
             )}
-            <Checkbox label="Offer commissions like this" checked={offer} onChange={(event) => setOffer(event.target.checked)} />
+            {!isVisitorArtist(artistId) && (
+              <Checkbox label="Offer commissions like this" checked={offer} onChange={(event) => setOffer(event.target.checked)} />
+            )}
             {error && <p className="text-sm font-semibold text-red-600" role="alert">{error}</p>}
             <Button type="submit" disabled={persona.role === "parent-preview" || Boolean(sourceId && !drawBackOk)} className="w-full">{drawBackOk ? "Publish draw-back" : challenge ? "Enter the challenge" : "Publish"}</Button>
           </section>

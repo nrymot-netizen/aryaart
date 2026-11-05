@@ -12,7 +12,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageIntro eyebrow="Search" title="Find the right work" description="Combine search, style, budget, availability, and usage. Results stay in the URL so you can share or come back to the same view." />
+      <PageIntro eyebrow="Search" title="Find the right work" description="Search by style, budget, and availability." />
       <div className="mx-auto max-w-[1480px] px-4 pb-6 sm:px-6 lg:px-10"><SearchFilters filters={filters} action="/search" showAdvanced /></div>
       {filters.format === "physical" && <p className="mx-auto mb-6 max-w-3xl px-4 text-sm text-black/55 sm:px-6">Physical commissions are listed for discovery, but checkout stays digital-only in this demo.</p>}
       <FilteredDiscoverResults artworks={results} artists={artists} filters={filters} />

@@ -45,7 +45,9 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
   const artist = getArtist(id);
   if (!artist) notFound();
   const requestedTab = (await searchParams).tab;
-  const active = tabs.some((tab) => tab.id === requestedTab) ? requestedTab as ArtistProfileTab : "portfolio";
+  const requested = tabs.some((tab) => tab.id === requestedTab) ? requestedTab as ArtistProfileTab : "portfolio";
+  const visibleTabs = isVisitorArtist(artist.id) ? tabs.filter((tab) => tab.id === "portfolio" || tab.id === "about") : tabs;
+  const active = visibleTabs.some((tab) => tab.id === requested) ? requested : "portfolio";
   const portfolio = getArtistArt(id);
   const artistServices = getArtistServices(id);
   const primaryService = artistServices[0];
@@ -57,13 +59,13 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
       <section className="border-b border-black/5 bg-[#f3efe8]">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
           <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
-            <Image src={artist.avatar} alt={`${artist.displayName} avatar`} width={144} height={144} className="size-28 rounded-[2rem] object-cover ring-4 ring-white sm:size-36" />
+            <Image src={artist.avatar} alt={`${artist.displayName} avatar`} width={144} height={144} className="size-28 rounded-[2rem] object-cover ring-4 ring-white sm:size-36" priority />
             <div className="mt-5 flex-1 sm:ml-7 sm:mt-0">
               <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 <h1 className="text-3xl font-bold tracking-tight">{artistLabel(artist)}</h1>
                 {artist.accountType === "protected-teen" && <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-plum"><ShieldCheck size={15} weight="fill" />Parent supported</span>}
               </div>
-              <p className="mt-1 text-lg text-black/60">{artist.displayName} · {artist.specialty}</p>
+              <p className="mt-1 text-lg text-black/60">{isVisitorArtist(artist.id) ? artist.specialty : `${artist.displayName} · ${artist.specialty}`}</p>
               <p className="mt-4 max-w-xl leading-7 text-black/65">{artist.bio}</p>
               <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm sm:justify-start">
                 {isVisitorArtist(artist.id) ? (
@@ -96,7 +98,7 @@ export default async function ArtistProfilePage({ params, searchParams }: { para
           </div>
         </div>
       </section>
-      <TabNav items={tabs.map((tab) => ({ ...tab, href: `/artists/${artist.id}${tab.id === "portfolio" ? "" : `?tab=${tab.id}`}` }))} active={active} />
+      <TabNav items={visibleTabs.map((tab) => ({ ...tab, href: `/artists/${artist.id}${tab.id === "portfolio" ? "" : `?tab=${tab.id}`}` }))} active={active} />
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_340px]">
         <div>
           {active === "portfolio" && (
@@ -167,14 +169,20 @@ function ServiceList({ artistId }: { artistId: string }) {
 function AboutRules({ artistId }: { artistId: string }) {
   const artist = getArtist(artistId);
   if (!artist) return null;
-  const rules = [
-    ["Accepted subjects", artist.rules.acceptedSubjects.join(" · ")],
-    ["Declined subjects", artist.rules.declinedSubjects.join(" · ")],
-    ["Revision policy", artist.rules.revisionPolicy],
-    ["Usage rights", artist.rules.usageRights],
-    ["Communication", artist.rules.communicationBoundary],
-    ["Response time", artist.rules.expectedResponseTime],
-    ["Cancellation", artist.rules.cancellationPolicy],
-  ];
+  const rules = isVisitorArtist(artist.id)
+    ? [
+        ["Usage rights", artist.rules.usageRights],
+        ["Communication", artist.rules.communicationBoundary],
+        ["This profile", artist.rules.revisionPolicy],
+      ]
+    : [
+        ["Accepted subjects", artist.rules.acceptedSubjects.join(" · ")],
+        ["Declined subjects", artist.rules.declinedSubjects.join(" · ")],
+        ["Revision policy", artist.rules.revisionPolicy],
+        ["Usage rights", artist.rules.usageRights],
+        ["Communication", artist.rules.communicationBoundary],
+        ["Response time", artist.rules.expectedResponseTime],
+        ["Cancellation", artist.rules.cancellationPolicy],
+      ];
   return <div className="space-y-4">{rules.map(([title, body]) => <section key={title} className="rounded-3xl bg-white p-5"><h3 className="font-bold">{title}</h3><p className="mt-2 text-sm leading-6 text-black/65">{body}</p></section>)}</div>;
 }
